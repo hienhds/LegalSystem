@@ -1,0 +1,685 @@
+{
+	"info": {
+		"_postman_id": "b2c3d4e5-f6g7-8901-cdef-234567890123",
+		"name": "Legal Document API Tests",
+		"description": "Complete API testing collection for Legal Document Management System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "documentId",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "📄 Document Operations",
+			"item": [
+				{
+					"name": "Get Document by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success = true', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test('Document data is present', function () {",
+									"    const jsonData = pm.response.json();",
+									"    const document = jsonData.data;",
+									"    pm.expect(document).to.have.property('documentId');",
+									"    pm.expect(document).to.have.property('title');",
+									"    pm.expect(document).to.have.property('category');",
+									"    pm.expect(document).to.have.property('viewCount');",
+									"});",
+									"",
+									"pm.test('View count is incremented', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.viewCount).to.be.above(0);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/{{documentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"{{documentId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Non-existent Document",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Error response format', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"    pm.expect(jsonData.message).to.include('not found');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"999999"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🔍 Search Operations",
+			"item": [
+				{
+					"name": "Advanced Search - Keyword Only",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Search results are paginated', function () {",
+									"    const jsonData = pm.response.json();",
+									"    const page = jsonData.data;",
+									"    pm.expect(page).to.have.property('content');",
+									"    pm.expect(page).to.have.property('totalElements');",
+									"    pm.expect(page).to.have.property('totalPages');",
+									"    pm.expect(page).to.have.property('number');",
+									"});",
+									"",
+									"pm.test('Results contain search keyword', function () {",
+									"    const jsonData = pm.response.json();",
+									"    const documents = jsonData.data.content;",
+									"    if (documents.length > 0) {",
+									"        const firstDoc = documents[0];",
+									"        pm.expect(firstDoc.title.toLowerCase()).to.include('luật');",
+									"    }",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/search?keyword=luật&page=0&size=5",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"search"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "luật"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "5"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Advanced Search - Category Only",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Results match category filter', function () {",
+									"    const jsonData = pm.response.json();",
+									"    const documents = jsonData.data.content;",
+									"    documents.forEach(doc => {",
+									"        pm.expect(doc.category).to.eql('Luật');",
+									"    });",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/search?category=Luật&page=0&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"search"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "Luật"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Advanced Search - Combined Filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Results match both keyword and category', function () {",
+									"    const jsonData = pm.response.json();",
+									"    const documents = jsonData.data.content;",
+									"    documents.forEach(doc => {",
+									"        pm.expect(doc.title.toLowerCase()).to.include('dân sự');",
+									"        pm.expect(doc.category).to.eql('Luật');",
+									"    });",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/search?keyword=dân sự&category=Luật&page=0&size=5",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"search"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "dân sự"
+								},
+								{
+									"key": "category",
+									"value": "Luật"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "5"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "General Search",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Search message is appropriate', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('doanh nghiệp');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/general-search?keyword=doanh nghiệp&page=0&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"general-search"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "doanh nghiệp"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📂 Category Operations",
+			"item": [
+				{
+					"name": "Get Documents by Category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('All documents belong to requested category', function () {",
+									"    const jsonData = pm.response.json();",
+									"    const documents = jsonData.data.content;",
+									"    documents.forEach(doc => {",
+									"        pm.expect(doc.category).to.eql('Nghị định');",
+									"    });",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/category/Nghị định?page=0&size=5",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"category",
+								"Nghị định"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "5"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Categories",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Categories list is returned', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('categories');",
+									"    pm.expect(jsonData.data).to.have.property('totalCategories');",
+									"    pm.expect(jsonData.data.categories).to.be.an('array');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/categories",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"categories"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Category Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Category stats are returned', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('categoryStats');",
+									"    pm.expect(jsonData.data.categoryStats).to.be.an('array');",
+									"    ",
+									"    if (jsonData.data.categoryStats.length > 0) {",
+									"        const firstStat = jsonData.data.categoryStats[0];",
+									"        pm.expect(firstStat).to.have.property('categoryName');",
+									"        pm.expect(firstStat).to.have.property('documentCount');",
+									"    }",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/categories/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"categories",
+								"stats"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📊 Analytics Operations",
+			"item": [
+				{
+					"name": "Get Trending Documents",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Documents are sorted by view count', function () {",
+									"    const jsonData = pm.response.json();",
+									"    const documents = jsonData.data.content;",
+									"    ",
+									"    for (let i = 0; i < documents.length - 1; i++) {",
+									"        pm.expect(documents[i].viewCount).to.be.at.least(documents[i + 1].viewCount);",
+									"    }",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/trending?page=0&size=5",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"trending"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "5"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Documents with Sorting",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Documents are sorted correctly', function () {",
+									"    const jsonData = pm.response.json();",
+									"    const documents = jsonData.data.content;",
+									"    ",
+									"    // Test that documents are sorted by title ascending",
+									"    for (let i = 0; i < documents.length - 1; i++) {",
+									"        pm.expect(documents[i].title.localeCompare(documents[i + 1].title)).to.be.at.most(0);",
+									"    }",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents?page=0&size=10&sortBy=title&sortDirection=asc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "title"
+								},
+								{
+									"key": "sortDirection",
+									"value": "asc"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "⚠️ Validation Tests",
+			"item": [
+				{
+					"name": "Invalid Page Number",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Validation error response', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/search?keyword=test&page=-1&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"search"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "test"
+								},
+								{
+									"key": "page",
+									"value": "-1"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Invalid Page Size",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Validation error response', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/documents/search?keyword=test&page=0&size=0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"search"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "test"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "0"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
