@@ -45,6 +45,7 @@ public class Appointment {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private AppointmentStatus status = AppointmentStatus.PENDING;
     
     @Enumerated(EnumType.STRING)
@@ -53,6 +54,7 @@ public class Appointment {
     
     private String meetingLocation;
     
+    @Builder.Default
     private Integer durationMinutes = 60;
     
     private String rejectionReason;

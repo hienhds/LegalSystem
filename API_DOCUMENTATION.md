@@ -44,8 +44,245 @@ Authentication: Bearer {jwt_token}
 3. [📅 Appointment APIs](#3--appointment-apis)  
 4. [👤 User Management APIs](#4--user-management-apis)
 5. [👨‍💼 Lawyer Management APIs](#5--lawyer-management-apis)
-6. [❌ Error Handling](#6--error-handling)
-7. [🧪 Testing Examples](#7--testing-examples)
+6. [🔍 Search History APIs](#6--search-history-apis)
+7. [🛠️ Admin Cleanup APIs](#7--admin-cleanup-apis)
+8. [❌ Error Handling](#8--error-handling)
+9. [🧪 Testing Examples](#9--testing-examples)
+
+---
+
+## 6. 🔍 **Search History APIs**
+
+### 📝 **Tạo Lịch Sử Tìm Kiếm**
+```http
+POST /api/search-history
+Authorization: Bearer {jwt_token}
+```
+
+**Request Body:**
+```json
+{
+    "searchKeyword": "luật lao động",
+    "searchModule": "LAWYER",
+    "searchType": "GENERAL", 
+    "category": "Labor Law",
+    "resultCount": 15,
+    "filters": {
+        "specialization": "Labor Law",
+        "experience": "5+",
+        "location": "Hà Nội"
+    },
+    "executionTime": 250
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Search history saved successfully",
+    "data": {
+        "id": 123,
+        "keyword": "luật lao động",
+        "searchModule": "LAWYER",
+        "searchType": "GENERAL",
+        "resultCount": 15,
+        "filters": "{\"specialization\":\"Labor Law\"}",
+        "executionTime": 250,
+        "searchTime": "2025-11-22T19:30:00",
+        "userId": 456,
+        "username": "user123"
+    }
+}
+```
+
+### 📋 **Lấy Lịch Sử Tìm Kiếm**
+```http
+GET /api/search-history/user/{userId}?page=0&size=10
+Authorization: Bearer {jwt_token}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "histories": [
+            {
+                "id": 123,
+                "keyword": "luật lao động",
+                "searchModule": "LAWYER", 
+                "searchType": "GENERAL",
+                "resultCount": 15,
+                "filters": "{\"specialization\":\"Labor Law\"}",
+                "executionTime": 250,
+                "searchTime": "2025-11-22T19:30:00",
+                "userId": 456,
+                "username": "user123"
+            }
+        ],
+        "totalElements": 50,
+        "currentPage": 0,
+        "pageSize": 10
+    }
+}
+```
+
+### 🔍 **Lấy Lịch Sử Với Bộ Lọc**
+```http
+POST /api/search-history/filter
+Authorization: Bearer {jwt_token}
+```
+
+**Request Body:**
+```json
+{
+    "userId": 456,
+    "keyword": "luật",
+    "searchModule": "LAWYER",
+    "searchType": "GENERAL",
+    "category": "Labor Law",
+    "fromDate": "2025-11-01T00:00:00",
+    "toDate": "2025-11-22T23:59:59",
+    "minResultCount": 5,
+    "maxResultCount": 100,
+    "page": 0,
+    "size": 20
+}
+```
+
+### 🏆 **Từ Khóa Phổ Biến**
+```http
+GET /api/search-history/popular-keywords?limit=10&period=week
+Authorization: Bearer {jwt_token} (ADMIN)
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "keywords": [
+            {
+                "keyword": "luật lao động",
+                "searchCount": 150,
+                "percentage": 25.5
+            },
+            {
+                "keyword": "tư vấn pháp lý",
+                "searchCount": 120,
+                "percentage": 20.4
+            }
+        ],
+        "totalSearches": 588,
+        "period": "week"
+    }
+}
+```
+
+### 📊 **Thống Kê Tìm Kiếm**
+```http
+GET /api/search-history/statistics?period=month
+Authorization: Bearer {jwt_token} (ADMIN)
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "totalSearches": 1250,
+        "uniqueUsers": 89,
+        "averageResultsPerSearch": 12.5,
+        "moduleStats": [
+            {
+                "module": "LAWYER",
+                "searchCount": 650,
+                "percentage": 52.0
+            },
+            {
+                "module": "LEGAL_DOCUMENT",
+                "searchCount": 400,
+                "percentage": 32.0
+            }
+        ],
+        "typeStats": [
+            {
+                "type": "GENERAL",
+                "searchCount": 800,
+                "percentage": 64.0
+            },
+            {
+                "type": "ADVANCED",
+                "searchCount": 300,
+                "percentage": 24.0
+            }
+        ],
+        "period": "month",
+        "generatedAt": "2025-11-22T19:30:00"
+    }
+}
+```
+
+### 💡 **Đề Xuất Từ Khóa**
+```http
+GET /api/search-history/suggestions?q=luật&module=LAWYER&limit=5
+Authorization: Bearer {jwt_token}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": [
+        "luật lao động",
+        "luật hôn nhân",
+        "luật dân sự",
+        "luật kinh doanh",
+        "luật hình sự"
+    ]
+}
+```
+
+### 📈 **Xu Hướng Tìm Kiếm**
+```http
+GET /api/search-history/trending?module=LAWYER&days=7&minCount=5
+Authorization: Bearer {jwt_token} (ADMIN)
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "keyword": "tư vấn pháp lý online",
+            "recentCount": 45,
+            "growthRate": 150.0,
+            "trending": true
+        }
+    ]
+}
+```
+
+### 🗑️ **Xóa Lịch Sử Tìm Kiếm**
+```http
+DELETE /api/search-history/{id}
+Authorization: Bearer {jwt_token} (ADMIN)
+```
+
+```http
+DELETE /api/search-history/user/{userId}
+Authorization: Bearer {jwt_token} (ADMIN)
+```
+
+**Enums:**
+- **SearchModule**: `APPOINTMENT`, `FORUM`, `LAWYER`, `LEGAL_DOCUMENT`, `USER`
+- **SearchType**: `GENERAL`, `ADVANCED`, `AUTOCOMPLETE`, `BY_ID`, `CATEGORY`, `FILTER`, `TRENDING`
+
+---
+
+## 7. 🛠️ **Admin Cleanup APIs**
 
 ---
 
@@ -742,7 +979,549 @@ Upload thêm chứng chỉ cho luật sư (cần authentication).
 
 ---
 
-# 6. ❌ **Error Handling**
+# 6. 🔍 **Search History APIs**
+
+## **Lấy lịch sử tìm kiếm của người dùng**
+
+### **GET** `/api/search-history`
+Lấy danh sách lịch sử tìm kiếm của người dùng hiện tại (cần authentication).
+
+**Headers:** `Authorization: Bearer {jwt_token}`
+
+**Query Parameters:**
+- `page` (default: 0): Số trang
+- `size` (default: 20): Kích thước trang
+
+**Example:** `/api/search-history?page=0&size=10`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Lấy lịch sử tìm kiếm thành công",
+  "data": {
+    "histories": [
+      {
+        "id": 15,
+        "userId": 2,
+        "searchKeyword": "hợp đồng lao động",
+        "searchModule": "LEGAL_DOCUMENT",
+        "searchType": "GENERAL",
+        "filters": {
+          "category": "Lao động",
+          "documentType": "Luật"
+        },
+        "resultCount": 24,
+        "executionTime": 156,
+        "searchedAt": "2024-01-15 10:30:00"
+      },
+      {
+        "id": 14,
+        "userId": 2,
+        "searchKeyword": "luật sư dân sự",
+        "searchModule": "LAWYER",
+        "searchType": "ADVANCED",
+        "filters": {
+          "specialization": "Dân sự",
+          "experience": "5+"
+        },
+        "resultCount": 12,
+        "executionTime": 89,
+        "searchedAt": "2024-01-15 09:15:00"
+      }
+    ],
+    "total_count": 45,
+    "page": 0,
+    "page_size": 20,
+    "total_pages": 3,
+    "has_next": true,
+    "has_previous": false
+  }
+}
+```
+
+## **Lấy lịch sử tìm kiếm với bộ lọc nâng cao**
+
+### **POST** `/api/search-history/history/filter`
+Lọc lịch sử tìm kiếm theo nhiều tiêu chí (cần authentication).
+
+**Headers:** `Authorization: Bearer {jwt_token}`
+
+**Request Body:**
+```json
+{
+  "search_module": "LEGAL_DOCUMENT",
+  "search_type": "GENERAL",
+  "keyword": "hợp đồng",
+  "start_date": "2024-01-01T00:00:00",
+  "end_date": "2024-01-31T23:59:59",
+  "has_results": true,
+  "min_result_count": 5,
+  "max_result_count": 100,
+  "page": 0,
+  "size": 20,
+  "sort_by": "searchTime",
+  "sort_direction": "desc"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Lấy lịch sử tìm kiếm với filters thành công",
+  "data": {
+    "histories": [
+      {
+        "id": 15,
+        "userId": 2,
+        "searchKeyword": "hợp đồng lao động",
+        "searchModule": "LEGAL_DOCUMENT",
+        "searchType": "GENERAL",
+        "resultCount": 24,
+        "executionTime": 156,
+        "searchedAt": "2024-01-15 10:30:00"
+      }
+    ],
+    "total_count": 12,
+    "page": 0,
+    "page_size": 20,
+    "total_pages": 1,
+    "has_next": false,
+    "has_previous": false
+  }
+}
+```
+
+## **Lưu lịch sử tìm kiếm mới**
+
+### **POST** `/api/search-history`
+Lưu một lượt tìm kiếm mới của người dùng (cần authentication).
+
+**Headers:** 
+- `Authorization: Bearer {jwt_token}`
+- `Content-Type: application/json`
+
+**Request Body:**
+```json
+{
+  "searchKeyword": "tranh chấp đất đai",
+  "searchModule": "LEGAL_DOCUMENT",
+  "searchType": "ADVANCED",
+  "filters": {
+    "category": "Dân sự",
+    "documentType": "Nghị định",
+    "year": "2024"
+  },
+  "resultCount": 18,
+  "executionTime": 245
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 201,
+  "message": "Lưu lịch sử tìm kiếm thành công",
+  "data": {
+    "id": 16,
+    "userId": 2,
+    "searchKeyword": "tranh chấp đất đai",
+    "searchModule": "LEGAL_DOCUMENT",
+    "searchType": "ADVANCED",
+    "filters": {
+      "category": "Dân sự",
+      "documentType": "Nghị định",
+      "year": "2024"
+    },
+    "resultCount": 18,
+    "executionTime": 245,
+    "searchedAt": "2024-01-15 11:45:00"
+  }
+}
+```
+
+## **Lấy từ khóa tìm kiếm phổ biến**
+
+### **GET** `/api/search-history/popular-keywords`
+Lấy danh sách từ khóa được tìm kiếm nhiều nhất (không cần authentication).
+
+**Query Parameters:**
+- `limit` (default: 10): Số lượng từ khóa trả về (tối đa 100)
+- `period` (default: "all_time"): Thời gian thống kê ("today", "week", "month", "all_time")
+
+**Example:** `/api/search-history/popular-keywords?limit=5&period=week`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Lấy từ khóa phổ biến thành công",
+  "data": {
+    "keywords": [
+      {
+        "keyword": "hợp đồng lao động",
+        "search_count": 156,
+        "unique_users": 45,
+        "average_results": 22.5,
+        "percentage": 18.7
+      },
+      {
+        "keyword": "luật giao thông",
+        "search_count": 142,
+        "unique_users": 38,
+        "average_results": 31.2,
+        "percentage": 17.1
+      },
+      {
+        "keyword": "bảo hiểm xã hội",
+        "search_count": 98,
+        "unique_users": 28,
+        "average_results": 14.8,
+        "percentage": 11.8
+      }
+    ],
+    "period": "week",
+    "total_count": 5,
+    "generated_at": "2024-01-15T12:00:00"
+  }
+}
+```
+
+## **Lấy thống kê tìm kiếm cá nhân**
+
+### **GET** `/api/search-history/user-statistics`
+Lấy thống kê chi tiết về hoạt động tìm kiếm của người dùng (cần authentication).
+
+**Headers:** `Authorization: Bearer {jwt_token}`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Lấy thống kê tìm kiếm cá nhân thành công",
+  "data": {
+    "total_searches": 45,
+    "unique_users": 1,
+    "searches_today": 3,
+    "searches_this_week": 12,
+    "searches_this_month": 28,
+    "popular_keywords": {
+      "hợp đồng lao động": 8,
+      "luật giao thông": 6,
+      "tranh chấp đất đai": 4
+    },
+    "search_by_module": {
+      "LEGAL_DOCUMENT": 32,
+      "LAWYER": 8,
+      "FORUM": 5
+    },
+    "search_by_type": {
+      "GENERAL": 28,
+      "ADVANCED": 12,
+      "CATEGORY": 5
+    },
+    "average_execution_time_ms": 167.5,
+    "total_results_found": 812,
+    "average_results_per_search": 18.04
+  }
+}
+```
+
+## **Lấy thống kê tìm kiếm toàn hệ thống**
+
+### **GET** `/api/search-history/system-statistics`
+Lấy thống kê tổng quan về hoạt động tìm kiếm trên toàn hệ thống (không cần authentication).
+
+**Query Parameters:**
+- `days` (default: 30): Thống kê trong số ngày gần nhất
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Lấy thống kê hệ thống thành công",
+  "data": {
+    "total_searches": 12450,
+    "unique_users": 856,
+    "searches_today": 234,
+    "searches_this_week": 1890,
+    "searches_this_month": 7234,
+    "popular_keywords": {
+      "hợp đồng lao động": 890,
+      "luật giao thông": 567,
+      "bảo hiểm xã hội": 445
+    },
+    "search_by_module": {
+      "LEGAL_DOCUMENT": 8765,
+      "LAWYER": 2234,
+      "FORUM": 1123,
+      "APPOINTMENT": 234,
+      "USER": 94
+    },
+    "search_by_type": {
+      "GENERAL": 7890,
+      "ADVANCED": 3456,
+      "CATEGORY": 890,
+      "FILTER": 214
+    },
+    "average_execution_time_ms": 156.7,
+    "total_results_found": 286350,
+    "average_results_per_search": 23.0
+  }
+}
+```
+
+## **Lấy gợi ý từ khóa**
+
+### **GET** `/api/search-history/history-suggestions`
+Lấy gợi ý từ khóa dựa trên lịch sử tìm kiếm cá nhân (cần authentication).
+
+**Headers:** `Authorization: Bearer {jwt_token}`
+
+**Query Parameters:**
+- `keyword` (required): Từ khóa để tìm gợi ý
+- `limit` (default: 10): Số lượng gợi ý (tối đa 20)
+
+**Example:** `/api/search-history/history-suggestions?keyword=hợp&limit=5`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Lấy gợi ý từ khóa thành công",
+  "data": [
+    "hợp đồng lao động",
+    "hợp đồng thuê nhà",
+    "hợp đồng mua bán",
+    "hợp tác xã",
+    "hợp đồng dịch vụ"
+  ]
+}
+```
+
+## **Xóa lịch sử tìm kiếm cụ thể**
+
+### **DELETE** `/api/search-history/{id}`
+Xóa một bản ghi lịch sử tìm kiếm cụ thể (cần authentication).
+
+**Headers:** `Authorization: Bearer {jwt_token}`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Xóa lịch sử tìm kiếm thành công"
+}
+```
+
+## **Xóa toàn bộ lịch sử tìm kiếm**
+
+### **DELETE** `/api/search-history/clear`
+Xóa toàn bộ lịch sử tìm kiếm của người dùng (cần authentication).
+
+**Headers:** `Authorization: Bearer {jwt_token}`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Xóa lịch sử tìm kiếm thành công",
+  "data": {
+    "deleted_count": 23,
+    "success": true,
+    "message": "Successfully deleted 23 search history records",
+    "deleted_at": "2024-01-15T12:30:00"
+  }
+}
+```
+
+---
+
+### **Enum Values:**
+
+#### **SearchModule** - Các module tìm kiếm:
+- `LEGAL_DOCUMENT`: Tìm kiếm văn bản pháp luật
+- `LAWYER`: Tìm kiếm luật sư  
+- `FORUM`: Tìm kiếm forum/Q&A
+- `APPOINTMENT`: Tìm kiếm lịch hẹn
+- `USER`: Tìm kiếm người dùng
+
+#### **SearchType** - Loại tìm kiếm:
+- `GENERAL`: Tìm kiếm chung theo keyword
+- `ADVANCED`: Tìm kiếm nâng cao với nhiều filters
+- `FILTER`: Tìm kiếm theo bộ lọc cụ thể
+- `CATEGORY`: Tìm kiếm theo danh mục
+- `TRENDING`: Xem nội dung phổ biến
+- `BY_ID`: Truy cập trực tiếp theo ID
+- `AUTOCOMPLETE`: Auto-suggest/completion
+
+### **Validation Rules:**
+- `searchKeyword`: Không được trống, tối đa 500 ký tự
+- `searchModule` và `searchType`: Bắt buộc
+- `limit` cho popular keywords: 1-100
+- `limit` cho suggestions: 1-20
+- Các filter trong `SearchHistoryFilterRequest` đều optional nhưng có validation riêng
+```
+
+---
+
+# 7. 🛠️ **Admin Cleanup APIs**
+
+## **Lấy cấu hình cleanup job**
+
+### **GET** `/api/admin/cleanup/search-history/config`
+Lấy thông tin cấu hình của scheduled cleanup job (cần quyền ADMIN).
+
+**Headers:** 
+- `Authorization: Bearer {admin_jwt_token}`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Lấy cấu hình cleanup thành công",
+  "data": {
+    "enabled": true,
+    "retentionDays": 30,
+    "batchSize": 1000
+  }
+}
+```
+
+## **Lấy thống kê cleanup**
+
+### **GET** `/api/admin/cleanup/search-history/stats`
+Lấy thống kê chi tiết về cleanup (cần quyền ADMIN).
+
+**Headers:** 
+- `Authorization: Bearer {admin_jwt_token}`
+
+**Query Parameters:**
+- `retentionDays` (default: 30): Số ngày để tính toán thống kê
+
+**Example:** `/api/admin/cleanup/search-history/stats?retentionDays=30`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Lấy thống kê cleanup thành công",
+  "data": {
+    "totalRecords": 125000,
+    "oldRecords": 45000,
+    "recordsToKeep": 80000,
+    "retentionDays": 30,
+    "cutoffDate": "2024-10-23T00:00:00",
+    "cleanupPercentage": 36.0,
+    "estimatedTotalSizeKB": 62500.0,
+    "estimatedOldSizeKB": 22500.0,
+    "status": "SUCCESS"
+  }
+}
+```
+
+## **Thực hiện cleanup thủ công**
+
+### **POST** `/api/admin/cleanup/search-history/manual`
+Chạy cleanup job thủ công ngay lập tức (cần quyền ADMIN).
+
+**Headers:** 
+- `Authorization: Bearer {admin_jwt_token}`
+
+**Query Parameters:**
+- `retentionDays` (optional): Số ngày retention tùy chỉnh
+
+**Example:** `/api/admin/cleanup/search-history/manual?retentionDays=60`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Manual cleanup hoàn thành",
+  "data": {
+    "deletedRecords": 23456,
+    "retentionDaysUsed": 60,
+    "message": "Đã xóa 23456 records cũ hơn 60 ngày"
+  }
+}
+```
+
+## **Kiểm tra dry-run cleanup**
+
+### **GET** `/api/admin/cleanup/search-history/dry-run`
+Kiểm tra số lượng records sẽ bị xóa mà không thực sự xóa (cần quyền ADMIN).
+
+**Headers:** 
+- `Authorization: Bearer {admin_jwt_token}`
+
+**Query Parameters:**
+- `retentionDays` (default: 30): Số ngày để tính toán
+
+**Example:** `/api/admin/cleanup/search-history/dry-run?retentionDays=45`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Dry-run cleanup thành công",
+  "data": {
+    "totalRecords": 125000,
+    "recordsToDelete": 67000,
+    "recordsToKeep": 58000,
+    "retentionDays": 45,
+    "deletePercentage": 53.6,
+    "message": "Sẽ xóa 67000/125000 records (53.6%) cũ hơn 45 ngày"
+  }
+}
+```
+
+## **Kiểm tra trạng thái cleanup**
+
+### **GET** `/api/admin/cleanup/search-history/health`
+Kiểm tra tình trạng database và đề xuất cleanup (cần quyền ADMIN).
+
+**Headers:** 
+- `Authorization: Bearer {admin_jwt_token}`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Kiểm tra health thành công",
+  "data": {
+    "cleanupEnabled": true,
+    "totalRecords": 125000,
+    "oldRecords": 45000,
+    "recommendCleanup": true,
+    "status": "NEEDS_CLEANUP",
+    "message": "Có 45000 records cũ, nên chạy cleanup"
+  }
+}
+```
+
+### **Trạng thái Health:**
+- `HEALTHY`: Database trong tình trạng tốt
+- `NEEDS_CLEANUP`: Có nhiều records cũ, nên cleanup
+- `ERROR`: Có lỗi khi kiểm tra
+
+---
+
+# 8. ❌ **Error Handling**
 
 ## **Standard Error Format**
 
@@ -790,7 +1569,7 @@ Upload thêm chứng chỉ cho luật sư (cần authentication).
 
 ---
 
-# 7. 🧪 **Testing Examples**
+# 9. 🧪 **Testing Examples**
 
 ## **Postman Collection Examples**
 
@@ -821,6 +1600,7 @@ POST /api/auth/login
     "refreshToken": "refresh_token_here"
   }
 }
+
 ```
 
 ### **2. Document Search Flow**
@@ -870,7 +1650,46 @@ Headers: Authorization: Bearer {citizen_jwt_token}
 }
 ```
 
-### **4. Profile Management Flow**
+### **6. Search History Management Flow**
+```bash
+# 1. Save search history after performing search
+POST /api/search-history
+Headers: Authorization: Bearer {jwt_token}
+{
+  "searchKeyword": "hợp đồng lao động",
+  "searchModule": "LEGAL_DOCUMENT",
+  "filters": {
+    "category": "Lao động",
+    "documentType": "Luật"
+  },
+  "resultCount": 24,
+  "executionTime": 156
+}
+
+# 2. Get user search history
+GET /api/search-history?searchModule=LEGAL_DOCUMENT&page=0&size=10
+Headers: Authorization: Bearer {jwt_token}
+
+# 3. Get popular keywords
+GET /api/search-history/popular-keywords?searchModule=LEGAL_DOCUMENT&limit=5&days=7
+
+# 4. Get user statistics
+GET /api/search-history/user-statistics?days=30
+Headers: Authorization: Bearer {jwt_token}
+
+# 5. Get system statistics
+GET /api/search-history/system-statistics?days=30
+
+# 6. Delete specific search history
+DELETE /api/search-history/15
+Headers: Authorization: Bearer {jwt_token}
+
+# 7. Clear all search history for a module
+DELETE /api/search-history/clear?searchModule=LEGAL_DOCUMENT&olderThanDays=30
+Headers: Authorization: Bearer {jwt_token}
+```
+
+### **7. Profile Management Flow**
 ```bash
 # 1. Update profile
 PUT /api/users/profile
@@ -889,7 +1708,30 @@ Form Data:
   file: [avatar_file.jpg]
 ```
 
-### **5. Lawyer Registration Flow**
+### **9. Admin Cleanup Management Flow**
+```bash
+# 1. Check cleanup health status
+GET /api/admin/cleanup/search-history/health
+Headers: Authorization: Bearer {admin_jwt_token}
+
+# 2. Get cleanup configuration
+GET /api/admin/cleanup/search-history/config
+Headers: Authorization: Bearer {admin_jwt_token}
+
+# 3. Check cleanup statistics
+GET /api/admin/cleanup/search-history/stats?retentionDays=30
+Headers: Authorization: Bearer {admin_jwt_token}
+
+# 4. Dry-run cleanup to see what would be deleted
+GET /api/admin/cleanup/search-history/dry-run?retentionDays=45
+Headers: Authorization: Bearer {admin_jwt_token}
+
+# 5. Manual cleanup execution
+POST /api/admin/cleanup/search-history/manual?retentionDays=60
+Headers: Authorization: Bearer {admin_jwt_token}
+```
+
+### **10. Lawyer Registration Flow**
 ```bash
 # 1. Register as lawyer
 POST /api/lawyers
@@ -949,6 +1791,42 @@ curl -X POST "http://localhost:8080/api/appointments?citizenId=2" \
 curl -X POST http://localhost:8080/api/users/avatar \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -F "file=@/path/to/avatar.jpg"
+```
+
+### **Search History Operations**
+```bash
+# Save search history
+curl -X POST http://localhost:8080/api/search-history \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "searchKeyword": "hợp đồng lao động",
+    "searchModule": "LEGAL_DOCUMENT",
+    "filters": {
+      "category": "Lao động"
+    },
+    "resultCount": 24,
+    "executionTime": 156
+  }'
+
+# Get user search history
+curl -X GET "http://localhost:8080/api/search-history?searchModule=LEGAL_DOCUMENT&page=0&size=10" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Get popular keywords
+curl -X GET "http://localhost:8080/api/search-history/popular-keywords?limit=5&days=7"
+
+# Get user statistics
+curl -X GET "http://localhost:8080/api/search-history/user-statistics?days=30" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Delete specific search history
+curl -X DELETE http://localhost:8080/api/search-history/15 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Clear old search history
+curl -X DELETE "http://localhost:8080/api/search-history/clear?searchModule=LEGAL_DOCUMENT&olderThanDays=30" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 ---

@@ -3,6 +3,7 @@ package com.example.backend.user.entity;
 import com.example.backend.auth.entity.RefreshToken;
 import com.example.backend.auth.entity.UserToken;
 import com.example.backend.lawyer.entity.Lawyer;
+import com.example.backend.search.entity.SearchHistory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -80,19 +81,19 @@ public class User {
     private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
-    @Builder.Default
     private List<UserRole> userRoles = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
-    @Builder.Default
     private List<UserToken> userTokens = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
-    @Builder.Default
     private List<RefreshToken> refreshTokens = new ArrayList<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Lawyer lawyer;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<SearchHistory> searchHistories = new ArrayList<>();
 
     public User(){
 

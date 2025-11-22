@@ -1,7 +1,6 @@
 package com.example.backend.admin.controller;
 
 import com.example.backend.common.dto.ApiResponse;
-import com.example.backend.common.security.CustomUserDetails;
 import com.example.backend.lawyer.dto.request.FilterLawyerRequest;
 import com.example.backend.lawyer.dto.response.LawyerDetailResponse;
 import com.example.backend.lawyer.dto.response.LawyerListResponse;
@@ -12,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;

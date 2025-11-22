@@ -6,17 +6,25 @@ import com.example.backend.document.dto.LegalDocumentResponse;
 import com.example.backend.document.entity.LegalDocument;
 import com.example.backend.document.service.LegalDocumentService;
 import com.example.backend.common.dto.ApiResponse;
+import com.example.backend.common.security.CustomUserDetails;
+import com.example.backend.search.dto.SearchHistoryRequest;
+import com.example.backend.search.entity.SearchModule;
+import com.example.backend.search.entity.SearchType;
+import com.example.backend.search.service.SearchHistoryService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -26,13 +34,17 @@ import java.util.stream.Collectors;
 public class LegalDocumentController {
 
     private final LegalDocumentService legalDocumentService;
+    private final SearchHistoryService searchHistoryService;
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<LegalDocumentResponse>>> searchDocuments(
-            @Valid @ModelAttribute DocumentSearchRequest request) {
+            @Valid @ModelAttribute DocumentSearchRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         log.info("Search request: keyword='{}', category='{}', page={}, size={}", 
                  request.getKeyword(), request.getCategory(), request.getPage(), request.getSize());
+        
+        long startTime = System.currentTimeMillis();
         
         Page<LegalDocument> documents = legalDocumentService.advancedSearch(
                 request.getCleanKeyword(),
@@ -40,6 +52,43 @@ public class LegalDocumentController {
                 request.getPage(),
                 request.getSize()
         );
+        
+        long executionTime = System.currentTimeMillis() - startTime;
+        
+        // Track search history for authenticated users
+        if (userDetails != null && request.hasKeyword()) {
+            try {
+                Map<String, Object> filters = new HashMap<>();
+                if (request.hasCategory()) {
+                    filters.put("category", request.getCleanCategory());
+                }
+                filters.put("sortBy", request.getSortBy());
+                filters.put("sortDirection", request.getSortDirection());
+                
+                SearchHistoryRequest historyRequest = new SearchHistoryRequest(
+                        request.getCleanKeyword(),
+                        SearchModule.LEGAL_DOCUMENT,
+                        SearchType.ADVANCED,
+                        (int) documents.getTotalElements()
+                );
+                historyRequest.setFilters(filters);
+                historyRequest.setExecutionTime(executionTime);
+                
+                // Save search history asynchronously to not block the main response
+                searchHistoryService.saveSearchHistoryAsync(
+                        userDetails.getUser().getUserId(), 
+                        historyRequest
+                );
+                
+                log.debug("Search history tracked for user: {} with keyword: {}", 
+                         userDetails.getUser().getUserId(), request.getCleanKeyword());
+                         
+            } catch (Exception e) {
+                log.warn("Failed to track search history for user: {} - {}", 
+                        userDetails.getUser().getUserId(), e.getMessage());
+                // Continue with the main response even if history tracking fails
+            }
+        }
         
         Page<LegalDocumentResponse> responseDocuments = documents.map(LegalDocumentResponse::fromEntity);
         
@@ -55,11 +104,42 @@ public class LegalDocumentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<LegalDocumentResponse>> getDocumentById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<LegalDocumentResponse>> getDocumentById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         log.info("Getting document with ID: {}", id);
         
+        long startTime = System.currentTimeMillis();
+        
         LegalDocument document = legalDocumentService.getDocumentById(id);
+        
+        long executionTime = System.currentTimeMillis() - startTime;
+        
+        // Track search history for authenticated users
+        if (userDetails != null && document != null) {
+            try {
+                SearchHistoryRequest historyRequest = new SearchHistoryRequest(
+                        "Document ID: " + id,
+                        SearchModule.LEGAL_DOCUMENT,
+                        SearchType.BY_ID,
+                        1 // Found one document
+                );
+                historyRequest.setExecutionTime(executionTime);
+                
+                searchHistoryService.saveSearchHistoryAsync(
+                        userDetails.getUser().getUserId(), 
+                        historyRequest
+                );
+                
+                log.debug("Document access tracked for user: {} with document ID: {}", 
+                         userDetails.getUser().getUserId(), id);
+                         
+            } catch (Exception e) {
+                log.warn("Failed to track document access for user: {} - {}", 
+                        userDetails.getUser().getUserId(), e.getMessage());
+            }
+        }
         
         if (document == null) {
             ApiResponse<LegalDocumentResponse> apiResponse = ApiResponse.<LegalDocumentResponse>builder()
@@ -90,11 +170,45 @@ public class LegalDocumentController {
     public ResponseEntity<ApiResponse<Page<LegalDocumentResponse>>> getDocumentsByCategory(
             @PathVariable String category,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         log.info("Getting documents by category: {}, page: {}, size: {}", category, page, size);
         
+        long startTime = System.currentTimeMillis();
+        
         Page<LegalDocument> documents = legalDocumentService.getDocumentsByCategory(category, page, size);
+        
+        long executionTime = System.currentTimeMillis() - startTime;
+        
+        // Track search history for authenticated users
+        if (userDetails != null && category != null && !category.trim().isEmpty()) {
+            try {
+                Map<String, Object> filters = new HashMap<>();
+                filters.put("category", category.trim());
+                
+                SearchHistoryRequest historyRequest = new SearchHistoryRequest(
+                        "Category: " + category.trim(),
+                        SearchModule.LEGAL_DOCUMENT,
+                        SearchType.CATEGORY,
+                        (int) documents.getTotalElements()
+                );
+                historyRequest.setFilters(filters);
+                historyRequest.setExecutionTime(executionTime);
+                
+                searchHistoryService.saveSearchHistoryAsync(
+                        userDetails.getUser().getUserId(), 
+                        historyRequest
+                );
+                
+                log.debug("Category search history tracked for user: {} with category: {}", 
+                         userDetails.getUser().getUserId(), category);
+                         
+            } catch (Exception e) {
+                log.warn("Failed to track category search history for user: {} - {}", 
+                        userDetails.getUser().getUserId(), e.getMessage());
+            }
+        }
         Page<LegalDocumentResponse> responseDocuments = documents.map(LegalDocumentResponse::fromEntity);
         
         ApiResponse<Page<LegalDocumentResponse>> apiResponse = ApiResponse.<Page<LegalDocumentResponse>>builder()
@@ -111,11 +225,41 @@ public class LegalDocumentController {
     @GetMapping("/trending")
     public ResponseEntity<ApiResponse<Page<LegalDocumentResponse>>> getTrendingDocuments(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         log.info("Getting trending documents, page: {}, size: {}", page, size);
         
+        long startTime = System.currentTimeMillis();
+        
         Page<LegalDocument> documents = legalDocumentService.getTrendingDocuments(page, size);
+        
+        long executionTime = System.currentTimeMillis() - startTime;
+        
+        // Track search history for authenticated users
+        if (userDetails != null) {
+            try {
+                SearchHistoryRequest historyRequest = new SearchHistoryRequest(
+                        "Trending Documents",
+                        SearchModule.LEGAL_DOCUMENT,
+                        SearchType.TRENDING,
+                        (int) documents.getTotalElements()
+                );
+                historyRequest.setExecutionTime(executionTime);
+                
+                searchHistoryService.saveSearchHistoryAsync(
+                        userDetails.getUser().getUserId(), 
+                        historyRequest
+                );
+                
+                log.debug("Trending search tracked for user: {}", 
+                         userDetails.getUser().getUserId());
+                         
+            } catch (Exception e) {
+                log.warn("Failed to track trending search for user: {} - {}", 
+                        userDetails.getUser().getUserId(), e.getMessage());
+            }
+        }
         Page<LegalDocumentResponse> responseDocuments = documents.map(LegalDocumentResponse::fromEntity);
         
         ApiResponse<Page<LegalDocumentResponse>> apiResponse = ApiResponse.<Page<LegalDocumentResponse>>builder()
@@ -205,11 +349,41 @@ public class LegalDocumentController {
     public ResponseEntity<ApiResponse<Page<LegalDocumentResponse>>> generalSearch(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         log.info("General search with keyword: '{}', page: {}, size: {}", keyword, page, size);
         
+        long startTime = System.currentTimeMillis();
+        
         Page<LegalDocument> documents = legalDocumentService.generalSearch(keyword, page, size);
+        
+        long executionTime = System.currentTimeMillis() - startTime;
+        
+        // Track search history for authenticated users with keywords
+        if (userDetails != null && keyword != null && !keyword.trim().isEmpty()) {
+            try {
+                SearchHistoryRequest historyRequest = new SearchHistoryRequest(
+                        keyword.trim(),
+                        SearchModule.LEGAL_DOCUMENT,
+                        SearchType.GENERAL,
+                        (int) documents.getTotalElements()
+                );
+                historyRequest.setExecutionTime(executionTime);
+                
+                searchHistoryService.saveSearchHistoryAsync(
+                        userDetails.getUser().getUserId(), 
+                        historyRequest
+                );
+                
+                log.debug("General search history tracked for user: {} with keyword: {}", 
+                         userDetails.getUser().getUserId(), keyword);
+                         
+            } catch (Exception e) {
+                log.warn("Failed to track general search history for user: {} - {}", 
+                        userDetails.getUser().getUserId(), e.getMessage());
+            }
+        }
         Page<LegalDocumentResponse> responseDocuments = documents.map(LegalDocumentResponse::fromEntity);
         
         String message = keyword != null && !keyword.trim().isEmpty() 
