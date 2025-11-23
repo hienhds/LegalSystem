@@ -1,7 +1,8 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.7'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    // Sửa 3.5.7 thành 3.3.5 (hoặc phiên bản ổn định bạn muốn)
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.6' // Nên dùng bản quản lý dependency mới
 }
 
 group = 'com.example'
