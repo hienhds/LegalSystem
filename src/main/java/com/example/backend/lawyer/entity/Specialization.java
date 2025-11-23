@@ -1,6 +1,7 @@
 package com.example.backend.lawyer.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -26,6 +27,7 @@ public class Specialization {
     @Column(name = "spec_name", nullable = false, unique = true, length = 255)
     private String specName;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "specialization", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<LawyerSpecialization> lawyers = new HashSet<>();

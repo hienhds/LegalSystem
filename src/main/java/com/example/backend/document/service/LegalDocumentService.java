@@ -189,6 +189,27 @@ public class LegalDocumentService {
     }
 
     /**
+     * Create new legal document (for Admin and Lawyer)
+     */
+    @Transactional
+    public LegalDocument createDocument(String title, String category, String fileUrl) {
+        log.info("Creating new legal document: title='{}', category='{}'", title, category);
+        
+        LegalDocument document = LegalDocument.builder()
+                .title(title)
+                .category(category)
+                .fileUrl(fileUrl)
+                .status(DocumentStatus.ACTIVE)
+                .viewCount(0)
+                .build();
+        
+        LegalDocument savedDocument = legalDocumentRepository.save(document);
+        log.info("Legal document created with ID: {}", savedDocument.getDocumentId());
+        
+        return savedDocument;
+    }
+
+    /**
      * General search (searches in both title and category)
      */
     public Page<LegalDocument> generalSearch(String keyword, int page, int size) {

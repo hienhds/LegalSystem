@@ -1,0 +1,1834 @@
+{
+	"info": {
+		"_postman_id": "d4a03594-c12b-4c92-8cff-0414fe07a91d",
+		"name": "LegalSystem API Collection",
+		"description": "Tổng hợp tất cả các API của hệ thống LegalSystem, sử dụng http://localhost:8080",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43552838",
+		"_collection_link": "https://quang-533012.postman.co/workspace/Quang's-Workspace~453b0b35-799d-434e-84ba-a0713bb5636d/collection/43552838-d4a03594-c12b-4c92-8cff-0414fe07a91d?action=share&source=collection_link&creator=43552838"
+	},
+	"item": [
+		{
+			"name": "USER",
+			"item": [
+				{
+					"name": "Get By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTY4MjY3OTQyOXF1YW5nQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4NDMwNSwiZXhwIjoxNzYzODg1MjA1fQ.hGw097pVYH2VwJ6ePlCM8IRm9WowrlzmiDJsMowjnd8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"Người dùng 2\",\n  \"email\": \"01682679429quang@gmail.com\",\n  \"phoneNumber\": \"0123456786\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/users/profile",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTY4MjY3OTQyOXF1YW5nQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4NDMwNSwiZXhwIjoxNzYzODg1MjA1fQ.hGw097pVYH2VwJ6ePlCM8IRm9WowrlzmiDJsMowjnd8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/laptop hoangkhuong/Pictures/2.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/users/avatar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"avatar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "AUTH",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"12345678\",\n  \"fullName\": \"Nguyen Van B\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Email",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/auth/verify?token=sampletoken",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"verify"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "sampletoken"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"01682679429quang@gmail.com\",\n  \"password\": \"12345678\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Login - user",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"01682679429quang@gmail.com\",\n  \"password\": \"12345678\"\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/auth/login",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"auth",
+										"login"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						},
+						{
+							"name": "Login - admin",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"vuttienquang8603@gmail.com\",\n  \"password\": \"12345678\"\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/auth/login",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"auth",
+										"login"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						},
+						{
+							"name": "Login - lawyer",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"vutienquang86@gmail.com\",\n  \"password\": \"12345678\"\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/auth/login",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"auth",
+										"login"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						}
+					]
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"sampletoken\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/auth/refresh",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"sampletoken\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/auth/logout",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/auth/forgot-password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Reset Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/auth/reset-password/validate?token=sampletoken",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"reset-password",
+								"validate"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "sampletoken"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"sampletoken\",\n  \"newPassword\": \"newpass123\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/auth/reset-password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SEARCH",
+			"item": [
+				{
+					"name": "Lawyers (POST)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2dXRpZW5xdWFuZzg2QGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4NDk3MSwiZXhwIjoxNzYzODg1ODcxfQ.XwdA9gb8zCB_d0tlOZyqMdlzlwjemUiYeZfhl7rrURo",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"keyword\": \"dân sự\",\n  \"city\": \"Hà Nội\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/search/lawyers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"search",
+								"lawyers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lawyers (GET)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTY4MjY3OTQyOXF1YW5nQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4NTE4MiwiZXhwIjoxNzYzODg2MDgyfQ.Bu6DisZ3ZkFWEeO5boFON4FEppsPVqyDrAM1AN3Vv8Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/search/lawyers?keyword=dân sự&city=Hà Nội&page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"search",
+								"lawyers"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "dân sự"
+								},
+								{
+									"key": "city",
+									"value": "Hà Nội"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/search/history?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"search",
+								"history"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Trending",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/search/trending?limit=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"search",
+								"trending"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Popular Lawyers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/search/popular-lawyers?limit=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"search",
+								"popular-lawyers"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Track Click",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/search/track-click?lawyerId=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"search",
+								"track-click"
+							],
+							"query": [
+								{
+									"key": "lawyerId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Suggestions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/search/suggestions?query=luật",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"search",
+								"suggestions"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "luật"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SEARCH HISTORY",
+			"item": [
+				{
+					"name": "Get Current User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTY4MjY3OTQyOXF1YW5nQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4NTE4MiwiZXhwIjoxNzYzODg2MDgyfQ.Bu6DisZ3ZkFWEeO5boFON4FEppsPVqyDrAM1AN3Vv8Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/search-history?page=0&size=20",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"search-history"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get By Admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2dXR0aWVucXVhbmc4NjAzQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4NTk3MiwiZXhwIjoxNzYzODg2ODcyfQ.3jd1BdoGBMHzQydvRcy0HrjwNFsPGzQhEdyuav17PVk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/search-history/user/2?page=0&size=20",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"search-history",
+								"user",
+								"2"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Filter",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTY4MjY3OTQyOXF1YW5nQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4NjExMiwiZXhwIjoxNzYzODg3MDEyfQ.POhSMpDx-j5Ogt2LclKT8GZDgCGvlTZHJ37JBH3owZs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"dateFrom\": \"2024-01-01\",\n  \"dateTo\": \"2024-12-31\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/search-history/history/filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"search-history",
+								"history",
+								"filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTY4MjY3OTQyOXF1YW5nQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4NjExMiwiZXhwIjoxNzYzODg3MDEyfQ.POhSMpDx-j5Ogt2LclKT8GZDgCGvlTZHJ37JBH3owZs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"searchKeyword\": \"luật lao động 3\",\n    \"searchModule\": \"LAWYER\",\n    \"searchType\": \"GENERAL\",\n    \"category\": \"Labor Law\", \n    \"resultCount\": 15,\n    \"filters\": {\"specialization\": \"Labor Law\"},\n    \"executionTime\": 250\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/search-history",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"search-history"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "APPOINTMENT",
+			"item": [
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"lawyerId\": 3,\n    \"appointmentDate\": \"2025-11-27\",\n    \"appointmentTime\": \"19:30:00\",\n    \"consultationType\": \"ONLINE\",\n    \"description\": \"Tư vấn về hợp đồng lao động\",\n    \"meetingLocation\": \"Google Meet\",\n    \"durationMinutes\": 60\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/appointments?citizenId=2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"appointments"
+							],
+							"query": [
+								{
+									"key": "citizenId",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get By Citizen",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTY4MjY3OTQyOXF1YW5nQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4Njc1OSwiZXhwIjoxNzYzODg3NjU5fQ.QfviDcgKyXteNUBMid0dm_ILTdTTTghguRsX5vHfiiw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/appointments/citizen/2?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"appointments",
+								"citizen",
+								"2"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get By Lawyer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2dXRpZW5xdWFuZzg2QGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4Njc2MywiZXhwIjoxNzYzODg3NjYzfQ.r34Mk8h8kGK-QD4jz3T9olxI06qTubRCP-xPo4CbDf0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/appointments/lawyer/3?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"appointments",
+								"lawyer",
+								"3"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get By Id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2dXR0aWVucXVhbmc4NjAzQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4NzAyMywiZXhwIjoxNzYzODg3OTIzfQ.hs1VnjPOCi4rbNs4SLzatOJdkgG5t7P8oIbqjjRIKKY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/appointments/6?userId=2&isLawyer=false",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"appointments",
+								"6"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "2"
+								},
+								{
+									"key": "isLawyer",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2dXRpZW5xdWFuZzg2QGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4Njc2MywiZXhwIjoxNzYzODg3NjYzfQ.r34Mk8h8kGK-QD4jz3T9olxI06qTubRCP-xPo4CbDf0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": \"Xác nhận lịch hẹn\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/appointments/7/confirm?lawyerId=3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"appointments",
+								"7",
+								"confirm"
+							],
+							"query": [
+								{
+									"key": "lawyerId",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reject",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Không phù hợp\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/appointments/1/reject?lawyerId=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"appointments",
+								"1",
+								"reject"
+							],
+							"query": [
+								{
+									"key": "lawyerId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "LAWYER SCHEDULE",
+			"item": [
+				{
+					"name": "Create Availability",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"dayOfWeek\": 1,\n  \"startTime\": \"09:00:00\",\n  \"endTime\": \"17:00:00\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/lawyer-schedule/availability",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"lawyer-schedule",
+								"availability"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Availability",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"dayOfWeek\": 1,\n  \"startTime\": \"09:00:00\",\n  \"endTime\": \"17:00:00\",\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/lawyer-schedule/availability/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"lawyer-schedule",
+								"availability",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Availability",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/lawyer-schedule/availability/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"lawyer-schedule",
+								"availability",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Availabilities",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/lawyer-schedule/availability",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"lawyer-schedule",
+								"availability"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lawyer Availabilities",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/lawyer-schedule/availability/lawyer/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"lawyer-schedule",
+								"availability",
+								"lawyer",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lawyer Schedule By Date",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/lawyer-schedule/schedule/lawyer/1?date=2025-12-01",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"lawyer-schedule",
+								"schedule",
+								"lawyer",
+								"1"
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "2025-12-01"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Availability",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/lawyer-schedule/check-availability/lawyer/1?dateTime=2025-12-01T10:00:00&durationMinutes=60",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"lawyer-schedule",
+								"check-availability",
+								"lawyer",
+								"1"
+							],
+							"query": [
+								{
+									"key": "dateTime",
+									"value": "2025-12-01T10:00:00"
+								},
+								{
+									"key": "durationMinutes",
+									"value": "60"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "DOCUMENT",
+			"item": [
+				{
+					"name": "Search",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTY4MjY3OTQyOXF1YW5nQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4Njc1OSwiZXhwIjoxNzYzODg3NjU5fQ.QfviDcgKyXteNUBMid0dm_ILTdTTTghguRsX5vHfiiw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/search?keyword=Luật&category=Luật&page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"documents",
+								"search"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "Luật"
+								},
+								{
+									"key": "category",
+									"value": "Luật"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get By Id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTY4MjY3OTQyOXF1YW5nQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4ODAzNiwiZXhwIjoxNzYzODg4OTM2fQ.JJTDZ08dicfWPIUx0VwzyAOdLjsOx-9ooZS8XGcF05g",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"documents",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get By Category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2dXR0aWVucXVhbmc4NjAzQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4NzAyMywiZXhwIjoxNzYzODg3OTIzfQ.hs1VnjPOCi4rbNs4SLzatOJdkgG5t7P8oIbqjjRIKKY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/category/Luật?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"documents",
+								"category",
+								"Luật"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Document",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2dXRpZW5xdWFuZzg2QGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4OTY0MiwiZXhwIjoxNzYzODkwNTQyfQ.njEJYEiXjih_z3oHn0vXk_o4ee070TIecsuRlKOGauw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"Bộ luật dân sự 2015\",\r\n  \"category\": \"DS\",\r\n  \"fileUrl\": \"https://example.com/documents/ds2015.pdf\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/documents",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"documents"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "LAWYER",
+			"item": [
+				{
+					"name": "Register (multipart)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "data",
+									"value": "{\"fullName\":\"Nguyen Van Luat\",\"licenseNumber\":\"LS001\"}",
+									"type": "text"
+								},
+								{
+									"key": "certificate",
+									"type": "file",
+									"src": "certificate.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/lawyers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"lawyers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Certificate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "certificate.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/lawyers/certificates",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"lawyers",
+								"certificates"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "BAR ASSOCIATION",
+			"item": [
+				{
+					"name": "Get All",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTY4MjY3OTQyOXF1YW5nQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4OTAzMywiZXhwIjoxNzYzODg5OTMzfQ.v4Ciww33KhVnRZGqbqlqrLOsGwnc1sV1WYilmwoQpcA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/bar-association",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"bar-association"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SPECIALIZATION",
+			"item": [
+				{
+					"name": "Get All",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTY4MjY3OTQyOXF1YW5nQGdtYWlsLmNvbSIsImlhdCI6MTc2Mzg4OTAzMywiZXhwIjoxNzYzODg5OTMzfQ.v4Ciww33KhVnRZGqbqlqrLOsGwnc1sV1WYilmwoQpcA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/specialization",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"specialization"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ADMIN",
+			"item": [
+				{
+					"name": "Get All Lawyers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/lawyers?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"lawyers"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lawyer Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/lawyers/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"lawyers",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Lawyer Status",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/lawyers/1/status?status=APPROVED",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"lawyers",
+								"1",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "APPROVED"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CLEANUP",
+			"item": [
+				{
+					"name": "Get Config",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/cleanup/search-history/config",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"cleanup",
+								"search-history",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/cleanup/search-history/stats?retentionDays=30",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"cleanup",
+								"search-history",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "retentionDays",
+									"value": "30"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Manual",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/cleanup/search-history/manual?retentionDays=30",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"cleanup",
+								"search-history",
+								"manual"
+							],
+							"query": [
+								{
+									"key": "retentionDays",
+									"value": "30"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Dry Run",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/cleanup/search-history/dry-run?retentionDays=30",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"cleanup",
+								"search-history",
+								"dry-run"
+							],
+							"query": [
+								{
+									"key": "retentionDays",
+									"value": "30"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/cleanup/search-history/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"cleanup",
+								"search-history",
+								"health"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

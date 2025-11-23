@@ -1,6 +1,7 @@
 package com.example.backend.lawyer.entity;
 
 import com.example.backend.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -24,6 +25,7 @@ public class Lawyer {
     private Long lawyerId;  // camelCase đúng chuẩn
 
     // Shared Primary Key (1–1)
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "lawyer_id")

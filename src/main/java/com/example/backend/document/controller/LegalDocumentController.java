@@ -1,5 +1,6 @@
 package com.example.backend.document.controller;
 
+import com.example.backend.document.dto.CreateDocumentRequest;
 import com.example.backend.document.dto.DocumentCategoryResponse;
 import com.example.backend.document.dto.DocumentSearchRequest;
 import com.example.backend.document.dto.LegalDocumentResponse;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -399,5 +401,33 @@ public class LegalDocumentController {
                 .build();
         
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LAWYER')")
+    public ResponseEntity<ApiResponse<LegalDocumentResponse>> createDocument(
+            @Valid @RequestBody CreateDocumentRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        log.info("Creating new document by user: {} ({})", 
+                 userDetails.getUser().getUserId(), userDetails.getUser().getEmail());
+        
+        LegalDocument document = legalDocumentService.createDocument(
+                request.getTitle(),
+                request.getCategory(),
+                request.getFileUrl()
+        );
+        
+        LegalDocumentResponse response = LegalDocumentResponse.fromEntity(document);
+        
+        ApiResponse<LegalDocumentResponse> apiResponse = ApiResponse.<LegalDocumentResponse>builder()
+                .success(true)
+                .status(HttpStatus.CREATED.value())
+                .message("Tạo văn bản pháp luật thành công")
+                .data(response)
+                .timestamp(Instant.now())
+                .build();
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 }

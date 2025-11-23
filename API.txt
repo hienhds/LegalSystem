@@ -1,0 +1,63 @@
+1. User APIs
+GET /api/users/{id}: Lấy thông tin user theo ID
+PUT /api/users/profile: Cập nhật hồ sơ user
+POST /api/users/avatar: Upload avatar (multipart/form-data)
+2. Auth APIs
+POST /api/auth/register: Đăng ký tài khoản
+GET /api/auth/verify?token=...: Xác minh email qua token
+POST /api/auth/login: Đăng nhập
+POST /api/auth/refresh: Làm mới token đăng nhập
+POST /api/auth/logout: Đăng xuất
+POST /api/auth/forgot-password: Yêu cầu đặt lại mật khẩu
+GET /api/auth/reset-password/validate?token=...: Kiểm tra token đặt lại mật khẩu
+POST /api/auth/reset-password: Đặt lại mật khẩu
+3. Search APIs
+POST /api/search/lawyers: Tìm kiếm luật sư nâng cao (body: tiêu chí tìm kiếm)
+GET /api/search/lawyers: Tìm kiếm luật sư đơn giản (query: keyword, city, ...)
+GET /api/search/history: Lấy lịch sử tìm kiếm
+GET /api/search/trending: Lấy các từ khóa tìm kiếm xu hướng
+GET /api/search/popular-lawyers: Lấy danh sách luật sư nổi bật
+POST /api/search/track-click?lawyerId=...: Ghi nhận click vào luật sư
+GET /api/search/suggestions?query=...: Gợi ý tìm kiếm
+4. Search History APIs
+GET /api/search-history: Lấy lịch sử tìm kiếm của user hiện tại
+GET /api/search-history/user/{userId}: Lấy lịch sử tìm kiếm của user cụ thể (ADMIN)
+POST /api/search-history/history/filter: Lấy lịch sử tìm kiếm với filter nâng cao
+POST /api/search-history: Lưu lịch sử tìm kiếm mới
+5. Appointment APIs
+POST /api/appointments?citizenId=...: Tạo lịch hẹn
+GET /api/appointments/citizen/{citizenId}: Lấy lịch hẹn của công dân
+GET /api/appointments/lawyer/{lawyerId}: Lấy lịch hẹn của luật sư
+GET /api/appointments/{appointmentId}?userId=...&isLawyer=...: Lấy chi tiết lịch hẹn
+POST /api/appointments/{appointmentId}/confirm?lawyerId=...: Luật sư xác nhận lịch hẹn
+POST /api/appointments/{appointmentId}/reject?lawyerId=...: Luật sư từ chối lịch hẹn
+6. Lawyer Schedule APIs
+POST /api/lawyer-schedule/availability: Tạo khung giờ làm việc
+PUT /api/lawyer-schedule/availability/{availabilityId}: Cập nhật khung giờ làm việc
+DELETE /api/lawyer-schedule/availability/{availabilityId}: Xóa khung giờ làm việc
+GET /api/lawyer-schedule/availability: Lấy danh sách khung giờ làm việc
+GET /api/lawyer-schedule/availability/lawyer/{lawyerId}: Lấy khung giờ của luật sư cụ thể
+GET /api/lawyer-schedule/schedule/lawyer/{lawyerId}?date=...: Lấy lịch làm việc của luật sư theo ngày
+GET /api/lawyer-schedule/check-availability/lawyer/{lawyerId}?dateTime=...&durationMinutes=...: Kiểm tra luật sư có rảnh không
+7. Document APIs
+GET /api/documents/search?keyword=...&category=...&page=...&size=...: Tìm kiếm văn bản pháp luật
+GET /api/documents/{id}: Lấy chi tiết văn bản theo ID
+GET /api/documents/category/{category}?page=...&size=...: Lấy văn bản theo chuyên mục
+POST /api/documents : tạo document 
+8. Lawyer APIs
+POST /api/lawyers (multipart/form-data): Đăng ký luật sư (gửi thông tin + file chứng chỉ)
+POST /api/lawyers/certificates (multipart/form-data): Upload chứng chỉ luật sư
+9. Bar Association APIs
+GET /api/bar-association: Lấy danh sách đoàn luật sư
+10. Specialization APIs
+GET /api/specialization: Lấy danh sách chuyên ngành luật
+11. Admin APIs
+GET /api/admin/lawyers: Lấy danh sách luật sư (ADMIN)
+GET /api/admin/lawyers/{id}: Lấy chi tiết luật sư (ADMIN)
+PUT /api/admin/lawyers/{id}/status?status=...: Cập nhật trạng thái xác thực luật sư (ADMIN)
+12. Scheduled/Cleanup APIs
+GET /api/admin/cleanup/search-history/config: Lấy cấu hình cleanup job
+GET /api/admin/cleanup/search-history/stats?retentionDays=...: Lấy thống kê cleanup
+POST /api/admin/cleanup/search-history/manual?retentionDays=...: Thực hiện cleanup thủ công
+GET /api/admin/cleanup/search-history/dry-run?retentionDays=...: Kiểm tra số lượng sẽ xóa (dry-run)
+GET /api/admin/cleanup/search-history/health: Kiểm tra trạng thái cleanup job
