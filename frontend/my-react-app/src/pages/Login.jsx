@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
+import { setupTokenRefreshTimer } from "../utils/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -29,7 +30,18 @@ export default function Login() {
         }
         return;
       }
-      localStorage.setItem("token", data.token || data.accessToken);
+      // Lưu accessToken và refreshToken vào localStorage
+      if (data.accessToken) {
+        localStorage.setItem("accessToken", data.accessToken);
+      }
+      if (data.refreshToken) {
+        localStorage.setItem("refreshToken", data.refreshToken);
+      }
+      
+      // Setup token refresh timer and dispatch login event
+      setupTokenRefreshTimer();
+      window.dispatchEvent(new CustomEvent('user-login'));
+      
       navigate("/home");
     } catch {
       setError("Sai tài khoản hoặc mật khẩu!");

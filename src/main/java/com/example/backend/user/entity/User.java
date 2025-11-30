@@ -104,4 +104,24 @@ public class User {
     public User(){
 
     }
+
+    public String getRoleName() {
+        if (userRoles != null && !userRoles.isEmpty()) {
+            // Ưu tiên trả về LAWYER nếu có
+            for (UserRole userRole : userRoles) {
+                if ("LAWYER".equals(userRole.getRole().getRoleName())) {
+                    return "LAWYER";
+                }
+            }
+            // Ưu tiên ADMIN nếu không có LAWYER
+            for (UserRole userRole : userRoles) {
+                if ("ADMIN".equals(userRole.getRole().getRoleName())) {
+                    return "ADMIN";
+                }
+            }
+            // Nếu không có LAWYER hay ADMIN, trả về role đầu tiên
+            return userRoles.get(0).getRole().getRoleName();
+        }
+        return null;
+    }
 }

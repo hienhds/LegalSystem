@@ -1,0 +1,330 @@
+{
+	"info": {
+		"_postman_id": "abc123-find-lawyer-collection",
+		"name": "FindLawyer API Collection",
+		"description": "Complete API collection for FindLawyer page functionality",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Search & Filter",
+			"item": [
+				{
+					"name": "Search Lawyers - Simple",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/search/lawyers?keyword=&page=0&size=10&sortBy=lawyerId&sortDir=DESC",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"search",
+								"lawyers"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "",
+									"description": "Search by name, email, license, bio"
+								},
+								{
+									"key": "specializationIds",
+									"value": "1,2",
+									"description": "Filter by specialization IDs (comma separated)",
+									"disabled": true
+								},
+								{
+									"key": "barAssociationId",
+									"value": "1",
+									"description": "Filter by bar association (location)",
+									"disabled": true
+								},
+								{
+									"key": "minYearsOfExp",
+									"value": "5",
+									"description": "Minimum years of experience",
+									"disabled": true
+								},
+								{
+									"key": "maxYearsOfExp",
+									"value": "20",
+									"description": "Maximum years of experience",
+									"disabled": true
+								},
+								{
+									"key": "minRating",
+									"value": "4.0",
+									"description": "Minimum average rating",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Page number (0-indexed)"
+								},
+								{
+									"key": "size",
+									"value": "10",
+									"description": "Page size"
+								},
+								{
+									"key": "sortBy",
+									"value": "lawyerId",
+									"description": "Sort field: lawyerId, createdAt, yearsOfExp, fullName"
+								},
+								{
+									"key": "sortDir",
+									"value": "DESC",
+									"description": "Sort direction: ASC or DESC"
+								}
+							]
+						},
+						"description": "Search lawyers with filters: keyword, specializations, experience, rating, location"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Lawyers - Advanced (POST)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"keyword\": \"\",\n  \"specializationIds\": [1, 2],\n  \"barAssociationId\": 1,\n  \"minYearsOfExp\": 5,\n  \"maxYearsOfExp\": 20,\n  \"minRating\": 4.0,\n  \"sortBy\": \"createdAt\",\n  \"sortDir\": \"DESC\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/search/lawyers",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "search", "lawyers"]
+						},
+						"description": "Advanced search with POST body for complex filters"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Lawyer Details",
+			"item": [
+				{
+					"name": "Get Lawyer by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/lawyers/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "lawyers", "1"]
+						},
+						"description": "Get detailed information about a specific lawyer including rating and review count"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Popular Lawyers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/search/popular-lawyers?limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "search", "popular-lawyers"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of lawyers to return"
+								}
+							]
+						},
+						"description": "Get list of popular/featured lawyers"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Statistics",
+			"item": [
+				{
+					"name": "Get Lawyer Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/lawyers/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "lawyers", "stats"]
+						},
+						"description": "Get overall statistics: total lawyers, average rating, satisfaction rate, etc."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Specializations & Locations",
+			"item": [
+				{
+					"name": "Get All Specializations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/specialization",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "specialization"]
+						},
+						"description": "Get list of all legal specializations for filter options"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Bar Associations (Locations)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/bar-association",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bar-association"]
+						},
+						"description": "Get list of all bar associations (locations) for filter options"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Search Features",
+			"item": [
+				{
+					"name": "Get Search Suggestions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/search/suggestions?query=luật",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "search", "suggestions"],
+							"query": [
+								{
+									"key": "query",
+									"value": "luật",
+									"description": "Search keyword for suggestions"
+								}
+							]
+						},
+						"description": "Get search suggestions for autocomplete"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Trending Searches",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/search/trending?limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "search", "trending"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of trending keywords to return"
+								}
+							]
+						},
+						"description": "Get trending search keywords"
+					},
+					"response": []
+				},
+				{
+					"name": "Track Lawyer Click",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/search/track-click?lawyerId=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "search", "track-click"],
+							"query": [
+								{
+									"key": "lawyerId",
+									"value": "1",
+									"description": "ID of the lawyer that was clicked"
+								}
+							]
+						},
+						"description": "Track when user clicks on a lawyer profile"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Authentication (Optional)",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.accessToken) {",
+									"    pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Login to get access token (saves to collection variable)"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

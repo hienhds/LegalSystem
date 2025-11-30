@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,23 +22,22 @@ public interface LegalDocumentRepository extends JpaRepository<LegalDocument, Lo
     Optional<LegalDocument> findByTitle(String title);
 
     // Find by title containing keyword (case-insensitive)
-    @Query("SELECT ld FROM LegalDocument ld WHERE LOWER(ld.title) LIKE LOWER(CONCAT('%', :keyword, '%')) AND ld.status = :status ORDER BY ld.viewCount DESC")
+    @Query("SELECT ld FROM LegalDocument ld WHERE LOWER(ld.title) LIKE LOWER(CONCAT('%', :keyword, '%')) AND ld.status = :status")
     Page<LegalDocument> findByTitleContaining(@Param("keyword") String keyword, @Param("status") DocumentStatus status, Pageable pageable);
 
     // Find by category
-    @Query("SELECT ld FROM LegalDocument ld WHERE ld.category = :category AND ld.status = :status ORDER BY ld.viewCount DESC")
+    @Query("SELECT ld FROM LegalDocument ld WHERE ld.category = :category AND ld.status = :status")
     Page<LegalDocument> findByCategory(@Param("category") String category, @Param("status") DocumentStatus status, Pageable pageable);
 
     // Find by status
-    @Query("SELECT ld FROM LegalDocument ld WHERE ld.status = :status ORDER BY ld.createdAt DESC")
+    @Query("SELECT ld FROM LegalDocument ld WHERE ld.status = :status")
     Page<LegalDocument> findByStatus(@Param("status") DocumentStatus status, Pageable pageable);
 
     // Advanced search: title AND category
     @Query("SELECT ld FROM LegalDocument ld WHERE " +
            "LOWER(ld.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "AND ld.category = :category " +
-           "AND ld.status = :status " +
-           "ORDER BY ld.viewCount DESC")
+           "AND ld.status = :status")
     Page<LegalDocument> findByTitleContainingAndCategory(@Param("keyword") String keyword, 
                                                         @Param("category") String category, 
                                                         @Param("status") DocumentStatus status, 
@@ -74,4 +74,47 @@ public interface LegalDocumentRepository extends JpaRepository<LegalDocument, Lo
     Page<LegalDocument> searchByKeyword(@Param("keyword") String keyword, 
                                        @Param("status") DocumentStatus status, 
                                        Pageable pageable);
+    
+    // Count documents created between dates
+    Long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+    
+    // Admin queries - without status filter
+    @Query("SELECT ld FROM LegalDocument ld WHERE LOWER(ld.title) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<LegalDocument> findByTitleContaining(@Param("keyword") String keyword, Pageable pageable);
+    
+    @Query("SELECT ld FROM LegalDocument ld WHERE ld.category = :category")
+    Page<LegalDocument> findByCategory(@Param("category") String category, Pageable pageable);
+    
+    Page<LegalDocument> findByStatusEquals(DocumentStatus status, Pageable pageable);
+    
+    @Query("SELECT ld FROM LegalDocument ld WHERE LOWER(ld.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "AND ld.category = :category")
+    Page<LegalDocument> findByTitleContainingAndCategory(@Param("keyword") String keyword, 
+                                                         @Param("category") String category, 
+                                                         Pageable pageable);
+    
+    @Query("SELECT ld FROM LegalDocument ld WHERE LOWER(ld.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "AND ld.status = :status")
+    Page<LegalDocument> findByTitleContainingAndStatus(@Param("keyword") String keyword, 
+                                                       @Param("status") DocumentStatus status, 
+                                                       Pageable pageable);
+    
+    @Query("SELECT ld FROM LegalDocument ld WHERE ld.category = :category AND ld.status = :status")
+    Page<LegalDocument> findByCategoryAndStatus(@Param("category") String category, 
+                                                @Param("status") DocumentStatus status, 
+                                                Pageable pageable);
+    
+    @Query("SELECT ld FROM LegalDocument ld WHERE LOWER(ld.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "AND ld.category = :category AND ld.status = :status")
+    Page<LegalDocument> findByTitleContainingAndCategoryAndStatus(@Param("keyword") String keyword, 
+                                                                  @Param("category") String category, 
+                                                                  @Param("status") DocumentStatus status, 
+                                                                  Pageable pageable);
+    
+    // Count by status
+    Long countByStatus(DocumentStatus status);
+    
+    // Get distinct categories
+    @Query("SELECT DISTINCT ld.category FROM LegalDocument ld ORDER BY ld.category")
+    List<String> findDistinctCategories();
 }

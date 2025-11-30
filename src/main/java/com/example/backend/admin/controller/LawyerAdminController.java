@@ -94,4 +94,69 @@ public class LawyerAdminController {
 
         return ResponseEntity.ok(response);
     }
+
+    // 4. Verify lawyer (approve)
+    @PutMapping("/{id}/verify")
+    public ResponseEntity<ApiResponse<String>> verifyLawyer(
+            @PathVariable Long id,
+            HttpServletRequest request
+    ) {
+        String msg = lawyerService.updateStatus(id, VerificationStatus.APPROVED);
+
+        ApiResponse<String> response =
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Xác minh luật sư thành công")
+                        .data(msg)
+                        .path(request.getRequestURI())
+                        .timestamp(Instant.now())
+                        .traceId(UUID.randomUUID().toString())
+                        .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 5. Reject lawyer
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<ApiResponse<String>> rejectLawyer(
+            @PathVariable Long id,
+            HttpServletRequest request
+    ) {
+        String msg = lawyerService.updateStatus(id, VerificationStatus.REJECTED);
+
+        ApiResponse<String> response =
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Từ chối xác minh luật sư thành công")
+                        .data(msg)
+                        .path(request.getRequestURI())
+                        .timestamp(Instant.now())
+                        .traceId(UUID.randomUUID().toString())
+                        .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 6. Delete lawyer
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteLawyer(
+            @PathVariable Long id,
+            HttpServletRequest request
+    ) {
+        lawyerService.deleteLawyer(id);
+
+        ApiResponse<Void> response =
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Xóa luật sư thành công")
+                        .path(request.getRequestURI())
+                        .timestamp(Instant.now())
+                        .traceId(UUID.randomUUID().toString())
+                        .build();
+
+        return ResponseEntity.ok(response);
+    }
 }

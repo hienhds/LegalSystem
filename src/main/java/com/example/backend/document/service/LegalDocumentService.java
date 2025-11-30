@@ -22,13 +22,14 @@ import java.util.List;
 public class LegalDocumentService {
 
     private final LegalDocumentRepository legalDocumentRepository;
+    private final DocumentViewTracker viewTracker;
 
     /**
-     * Get document by ID and increment view count
+     * Get document by ID and increment view count (with throttling)
      */
     @Transactional
-    public LegalDocument getDocumentById(Long documentId) {
-        log.info("Getting document with ID: {}", documentId);
+    public LegalDocument getDocumentById(Long documentId, String identifier) {
+        log.info("Getting document with ID: {} for identifier: {}", documentId, identifier);
         
         LegalDocument document = legalDocumentRepository.findById(documentId).orElse(null);
         
@@ -37,12 +38,24 @@ public class LegalDocumentService {
             return null;
         }
         
-        // Increment view count
-        legalDocumentRepository.incrementViewCount(documentId);
-        document.setViewCount(document.getViewCount() + 1); // Update in memory for response
+        // Only increment view count if not within cooldown period
+        if (identifier != null && viewTracker.shouldCountView(documentId, identifier)) {
+            legalDocumentRepository.incrementViewCount(documentId);
+            document.setViewCount(document.getViewCount() + 1); // Update in memory for response
+            log.info("View counted for document: {} (Views: {})", document.getTitle(), document.getViewCount());
+        } else {
+            log.debug("View NOT counted for document: {} (within cooldown)", document.getTitle());
+        }
         
-        log.info("Document found: {} (Views: {})", document.getTitle(), document.getViewCount());
         return document;
+    }
+    
+    /**
+     * Get document by ID without view tracking (for backward compatibility)
+     */
+    @Transactional
+    public LegalDocument getDocumentById(Long documentId) {
+        return getDocumentById(documentId, null);
     }
 
     /**
@@ -76,10 +89,17 @@ public class LegalDocumentService {
     /**
      * Advanced search with title and category filters
      */
-    public Page<LegalDocument> advancedSearch(String keyword, String category, int page, int size) {
-        log.info("Advanced search - keyword: '{}', category: '{}'", keyword, category);
+    public Page<LegalDocument> advancedSearch(String keyword, String category, int page, int size, String sortBy, String sortDirection) {
+        log.info("Advanced search - keyword: '{}', category: '{}', sortBy: '{}', sortDirection: '{}'", keyword, category, sortBy, sortDirection);
         
-        Pageable pageable = PageRequest.of(page, size);
+        // Build sort
+        Sort.Direction direction = sortDirection != null && sortDirection.equalsIgnoreCase("asc") 
+                ? Sort.Direction.ASC 
+                : Sort.Direction.DESC;
+        
+        Sort sort = Sort.by(direction, sortBy != null ? sortBy : "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
         Page<LegalDocument> documents;
         
         if (keyword != null && !keyword.trim().isEmpty() && category != null && !category.trim().isEmpty()) {
@@ -99,8 +119,27 @@ public class LegalDocumentService {
             documents = legalDocumentRepository.findByStatus(DocumentStatus.ACTIVE, pageable);
         }
         
+        // For title sorting, re-sort in memory with case-insensitive comparison
+        if ("title".equals(sortBy)) {
+            List<LegalDocument> sortedContent = new java.util.ArrayList<>(documents.getContent());
+            sortedContent.sort((d1, d2) -> {
+                int comparison = d1.getTitle().compareToIgnoreCase(d2.getTitle());
+                return direction == Sort.Direction.DESC ? comparison : -comparison;
+            });
+            documents = new org.springframework.data.domain.PageImpl<>(
+                sortedContent, pageable, documents.getTotalElements()
+            );
+        }
+        
         log.info("Advanced search found {} documents", documents.getTotalElements());
         return documents;
+    }
+    
+    /**
+     * Advanced search with title and category filters (backward compatibility)
+     */
+    public Page<LegalDocument> advancedSearch(String keyword, String category, int page, int size) {
+        return advancedSearch(keyword, category, page, size, "createdAt", "desc");
     }
 
     /**

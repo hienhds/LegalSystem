@@ -1,0 +1,467 @@
+{
+	"info": {
+		"_postman_id": "legal-doc-admin-api",
+		"name": "LegalSystem - Admin Document Management API",
+		"description": "API collection for managing legal documents in admin panel",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.accessToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@legalconnect.com\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Login với tài khoản admin để lấy access token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Document Management",
+			"item": [
+				{
+					"name": "1. Get Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents/stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents", "stats"]
+						},
+						"description": "Lấy thống kê: tổng số, active, inactive"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get All Documents (No Filter)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents?page=0&size=10&sort=createdAt,desc",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Số trang (bắt đầu từ 0)"
+								},
+								{
+									"key": "size",
+									"value": "10",
+									"description": "Số bản ghi mỗi trang"
+								},
+								{
+									"key": "sort",
+									"value": "createdAt,desc",
+									"description": "Sắp xếp: field,direction"
+								}
+							]
+						},
+						"description": "Lấy tất cả văn bản với pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Search Documents by Title",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents?page=0&size=10&search=dân sự",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": "dân sự",
+									"description": "Tìm kiếm theo tiêu đề"
+								}
+							]
+						},
+						"description": "Tìm kiếm văn bản theo tiêu đề"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Filter by Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents?page=0&size=10&category=Luật Dân sự",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "category",
+									"value": "Luật Dân sự",
+									"description": "Lọc theo danh mục"
+								}
+							]
+						},
+						"description": "Lọc văn bản theo danh mục"
+					},
+					"response": []
+				},
+				{
+					"name": "5. Filter by Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents?page=0&size=10&status=ACTIVE",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "ACTIVE",
+									"description": "ACTIVE hoặc INACTIVE"
+								}
+							]
+						},
+						"description": "Lọc văn bản theo trạng thái"
+					},
+					"response": []
+				},
+				{
+					"name": "6. Filter Combined",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents?page=0&size=10&search=luật&category=Luật Dân sự&status=ACTIVE&sort=viewCount,desc",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": "luật"
+								},
+								{
+									"key": "category",
+									"value": "Luật Dân sự"
+								},
+								{
+									"key": "status",
+									"value": "ACTIVE"
+								},
+								{
+									"key": "sort",
+									"value": "viewCount,desc"
+								}
+							]
+						},
+						"description": "Lọc kết hợp nhiều điều kiện"
+					},
+					"response": []
+				},
+				{
+					"name": "7. Get Document by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents", "1"]
+						},
+						"description": "Lấy chi tiết văn bản theo ID"
+					},
+					"response": []
+				},
+				{
+					"name": "8. Create Document",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "Bộ luật Test 2024",
+									"type": "text",
+									"description": "Tiêu đề văn bản"
+								},
+								{
+									"key": "category",
+									"value": "Luật Test",
+									"type": "text",
+									"description": "Danh mục"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "File XML"
+								},
+								{
+									"key": "status",
+									"value": "ACTIVE",
+									"type": "text",
+									"description": "ACTIVE hoặc INACTIVE (optional)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents"]
+						},
+						"description": "Thêm văn bản mới với file XML"
+					},
+					"response": []
+				},
+				{
+					"name": "9. Update Document",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "Bộ luật Updated",
+									"type": "text",
+									"description": "Tiêu đề mới (optional)"
+								},
+								{
+									"key": "category",
+									"value": "Luật Updated",
+									"type": "text",
+									"description": "Danh mục mới (optional)"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "File XML mới (optional)"
+								},
+								{
+									"key": "status",
+									"value": "INACTIVE",
+									"type": "text",
+									"description": "Trạng thái mới (optional)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents", "1"]
+						},
+						"description": "Cập nhật văn bản (tất cả fields đều optional)"
+					},
+					"response": []
+				},
+				{
+					"name": "10. Update Status Only",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"INACTIVE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents/1/status",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents", "1", "status"]
+						},
+						"description": "Chỉ đổi trạng thái văn bản"
+					},
+					"response": []
+				},
+				{
+					"name": "11. Delete Document",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents", "1"]
+						},
+						"description": "Xóa một văn bản"
+					},
+					"response": []
+				},
+				{
+					"name": "12. Bulk Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ids\": [1, 2, 3, 5, 10]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents/bulk",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents", "bulk"]
+						},
+						"description": "Xóa nhiều văn bản cùng lúc"
+					},
+					"response": []
+				},
+				{
+					"name": "13. Get Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents/categories",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents", "categories"]
+						},
+						"description": "Lấy danh sách tất cả danh mục (không trùng lặp)"
+					},
+					"response": []
+				},
+				{
+					"name": "14. Upload File XML",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "File XML"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents/upload",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents", "upload"]
+						},
+						"description": "Upload file XML và nhận URL"
+					},
+					"response": []
+				},
+				{
+					"name": "15. Get Document Content",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/documents/1/content",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "documents", "1", "content"]
+						},
+						"description": "Xem nội dung XML của văn bản"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

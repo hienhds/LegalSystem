@@ -6,13 +6,16 @@ import com.example.backend.document.dto.DocumentSearchRequest;
 import com.example.backend.document.dto.LegalDocumentResponse;
 import com.example.backend.document.entity.LegalDocument;
 import com.example.backend.document.service.LegalDocumentService;
+import com.example.backend.document.service.DocumentViewTracker;
 import com.example.backend.common.dto.ApiResponse;
 import com.example.backend.common.security.CustomUserDetails;
+import com.example.backend.common.util.IpAddressUtil;
 import com.example.backend.search.dto.SearchHistoryRequest;
 import com.example.backend.search.entity.SearchModule;
 import com.example.backend.search.entity.SearchType;
 import com.example.backend.search.service.SearchHistoryService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -37,14 +40,16 @@ public class LegalDocumentController {
 
     private final LegalDocumentService legalDocumentService;
     private final SearchHistoryService searchHistoryService;
+    private final DocumentViewTracker viewTracker;
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<LegalDocumentResponse>>> searchDocuments(
             @Valid @ModelAttribute DocumentSearchRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
-        log.info("Search request: keyword='{}', category='{}', page={}, size={}", 
-                 request.getKeyword(), request.getCategory(), request.getPage(), request.getSize());
+        log.info("Search request: keyword='{}', category='{}', page={}, size={}, sortBy='{}', sortDirection='{}'", 
+                 request.getKeyword(), request.getCategory(), request.getPage(), request.getSize(), 
+                 request.getSortBy(), request.getSortDirection());
         
         long startTime = System.currentTimeMillis();
         
@@ -52,7 +57,9 @@ public class LegalDocumentController {
                 request.getCleanKeyword(),
                 request.getCleanCategory(),
                 request.getPage(),
-                request.getSize()
+                request.getSize(),
+                request.getSortBy(),
+                request.getSortDirection()
         );
         
         long executionTime = System.currentTimeMillis() - startTime;
@@ -108,13 +115,19 @@ public class LegalDocumentController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<LegalDocumentResponse>> getDocumentById(
             @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest request) {
         
         log.info("Getting document with ID: {}", id);
         
         long startTime = System.currentTimeMillis();
         
-        LegalDocument document = legalDocumentService.getDocumentById(id);
+        // Get identifier for view tracking (user ID or IP address)
+        String ipAddress = IpAddressUtil.getClientIpAddress(request);
+        Long userId = userDetails != null ? userDetails.getUser().getUserId() : null;
+        String identifier = viewTracker.getIdentifier(ipAddress, userId);
+        
+        LegalDocument document = legalDocumentService.getDocumentById(id, identifier);
         
         long executionTime = System.currentTimeMillis() - startTime;
         

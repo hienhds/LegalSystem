@@ -69,4 +69,30 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     @Query("SELECT a FROM Appointment a WHERE a.createdAt BETWEEN :startDate AND :endDate")
     List<Appointment> findByDateRange(@Param("startDate") LocalDateTime startDate, 
                                     @Param("endDate") LocalDateTime endDate);
+    
+    // Statistics queries for lawyer ratings
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.lawyer.lawyerId = :lawyerId AND a.rating IS NOT NULL")
+    Long countReviewsByLawyerId(@Param("lawyerId") Long lawyerId);
+    
+    @Query("SELECT AVG(a.rating) FROM Appointment a WHERE a.lawyer.lawyerId = :lawyerId AND a.rating IS NOT NULL")
+    Double getAverageRatingByLawyerId(@Param("lawyerId") Long lawyerId);
+    
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.status = 'COMPLETED'")
+    Long countCompletedAppointments();
+    
+    @Query("SELECT COUNT(a) FROM Appointment a")
+    Long countTotalAppointments();
+    
+    @Query("SELECT AVG(a.rating) FROM Appointment a WHERE a.rating IS NOT NULL")
+    Double getOverallAverageRating();
+    
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.rating IS NOT NULL")
+    Long countTotalReviews();
+    
+    // Get reviews for a lawyer with user details
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.citizen " +
+           "WHERE a.lawyer.lawyerId = :lawyerId " +
+           "AND a.rating IS NOT NULL " +
+           "ORDER BY a.reviewedAt DESC")
+    Page<Appointment> findReviewsByLawyerId(@Param("lawyerId") Long lawyerId, Pageable pageable);
 }

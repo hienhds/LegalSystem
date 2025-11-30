@@ -5,6 +5,7 @@ import com.example.backend.common.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -42,38 +43,41 @@ public class SecurityConfig {
 
                 // Cấu hình ủy quyền request
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ Các endpoint công khai
-                        .requestMatchers(
-                                "/api/auth/login",
-                                "/api/auth/register",
-                                "/api/auth/verify",
-                                "/api/auth/forgot-password",
-                                "/api/auth/reset-password/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
+                    // ✅ Các endpoint công khai
+                    .requestMatchers(
+                        "/api/auth/login",
+                        "/api/auth/register",
+                        "/api/auth/verify",
+                        "/api/auth/forgot-password",
+                        "/api/auth/reset-password/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
+                    ).permitAll()
 
-                        // ✅ Cho phép truy cập tĩnh (nếu bạn có file ảnh, css,…)
-                        .requestMatchers(
-                                "/resources/**",
-                                "/static/**",
-                                "/images/**",
-                                "/css/**",
-                                "/js/**"
-                        ).permitAll()
+                    // ✅ Cho phép truy cập tĩnh (nếu bạn có file ảnh, css,…)
+                    .requestMatchers(
+                        "/resources/**",
+                        "/static/**",
+                        "/images/**",
+                        "/css/**",
+                        "/js/**",
+                        "/uploads/**"
+                    ).permitAll()
 
-//                        // USER + LAWYER + ADMIN
-//                        .requestMatchers("/api/user/**").hasAnyRole("USER", "LAWYER", "ADMIN")
-//
-//                        // LAWYER + ADMIN
-//                        .requestMatchers("/api/lawyer/**").hasAnyRole("LAWYER", "ADMIN")
-//
-//                        // ONLY ADMIN
-//                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+        //                        // USER + LAWYER + ADMIN
+        //                        .requestMatchers("/api/user/**").hasAnyRole("USER", "LAWYER", "ADMIN")
+        //
+        //                        // LAWYER + ADMIN
+        //                        .requestMatchers("/api/lawyer/**").hasAnyRole("LAWYER", "ADMIN")
+        //
+        //                        // ONLY ADMIN
+                    // Cho phép preflight OPTIONS cho tất cả endpoint
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+        //                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // Các request còn lại cần xác thực
-                        .anyRequest().authenticated()
+                    // Các request còn lại cần xác thực
+                    .anyRequest().authenticated()
                 )
 
                 // Gắn JWT filter vào trước UsernamePasswordAuthenticationFilter
