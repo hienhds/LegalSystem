@@ -29,11 +29,19 @@ public class CaseController {
     @PostMapping
     public ResponseEntity<ApiResponse<CaseResponse>> createCase(
             @RequestBody CreateCaseRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            HttpServletRequest servletRequest
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        // ... code cũ ...
-        return ResponseEntity.status(HttpStatus.CREATED).body(null); // (Giữ code cũ của bạn)
+        // Giả sử logic là Khách hàng tạo yêu cầu gửi đến Luật sư
+        Long clientId = userDetails.getUser().getUserId();
+        CaseResponse caseResponse = caseService.createCase(clientId, request);
+
+        ApiResponse<CaseResponse> response = ApiResponse.<CaseResponse>builder()
+                .success(true)
+                .message("Tạo vụ án thành công")
+                .data(caseResponse)
+                .timestamp(Instant.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{id}")
