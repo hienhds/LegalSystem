@@ -55,6 +55,13 @@ public class SecurityConfig {
                         "/swagger-ui.html"
                     ).permitAll()
 
+                    // ✅ Cho phép WebSocket endpoint
+                    .requestMatchers(
+                        "/chat/**",
+                        "/app/**",
+                        "/topic/**"
+                    ).permitAll()
+
                     // ✅ Cho phép truy cập tĩnh (nếu bạn có file ảnh, css,…)
                     .requestMatchers(
                         "/resources/**",

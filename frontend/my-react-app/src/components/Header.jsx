@@ -8,7 +8,7 @@ export default function Header() {
   const { user } = useUserProfile();
   return (
     <header className="flex w-full flex-col bg-white dark:bg-slate-900 shadow-md sticky top-0 z-50">
-      <div className="flex items-center justify-between whitespace-nowrap px-6 sm:px-10 py-4">
+      <div className="flex items-center justify-between whitespace-nowrap px-4 py-4">
         <div
           className="flex items-center gap-4 text-slate-900 dark:text-slate-50 cursor-pointer"
           onClick={() => navigate("/")}
@@ -22,7 +22,7 @@ export default function Header() {
           <Link to="/find-lawyer" className="text-slate-900 dark:text-slate-200 hover:text-custom-blue-dark font-semibold text-base">Luật Sư</Link>
           <a className="text-slate-900 dark:text-slate-200 hover:text-custom-blue-dark font-semibold text-base" href="#">Hỏi Đáp</a>
           <Link to="/legal-documents" className="text-slate-900 dark:text-slate-200 hover:text-custom-blue-dark font-semibold text-base">Văn Bản Pháp Luật</Link>
-          <a className="text-slate-900 dark:text-slate-200 hover:text-custom-blue-dark font-semibold text-base" href="#">Tin Tức</a>
+          <Link to="/contact" className="text-slate-900 dark:text-slate-200 hover:text-custom-blue-dark font-semibold text-base">Liên Hệ</Link>
           <a className="text-slate-900 dark:text-slate-200 hover:text-custom-blue-dark font-semibold text-base" href="#">Hồ Sơ</a>
           {user?.role === "ADMIN" && (
             <button

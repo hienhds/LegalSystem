@@ -35,6 +35,9 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	
+	// WebSocket dependencies for chat
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	
 	// OpenAPI 3 / Swagger dependencies
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 	

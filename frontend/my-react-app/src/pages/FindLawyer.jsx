@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Header from "../components/Header";
+import Layout from "../components/Layout";
 import axiosInstance from "../utils/axiosInstance";
 
 export default function FindLawyer() {
@@ -212,24 +212,14 @@ export default function FindLawyer() {
   };
 
   return (
-    <>
-      <Header />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Lora:wght@700&family=Noto+Sans:wght@400;500;700&display=swap"
-        rel="stylesheet"
-      />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet"
-      />
-
+    <Layout showFooter={true}>
       {/* Hero Section */}
       <section
-        className="relative flex min-h-[360px] flex-col items-center justify-center p-4"
+        className="relative flex min-h-[200px] flex-col items-center justify-center p-4"
         style={{ backgroundImage: "linear-gradient(to right, #1e40af, #3b82f6)" }}
       >
         <div className="flex flex-col gap-4 text-center">
-          <h1 className="font-serif text-white text-3xl sm:text-4xl md:text-5xl font-bold">Tìm Luật Sư Uy Tín</h1>
+          <h1 className="font-serif text-white text-1xl sm:text-2xl md:text-5xl font-bold">Tìm Luật Sư Uy Tín</h1>
           <h2 className="text-white/90 text-sm font-normal leading-normal md:text-base">
             {stats.totalLawyers || 0} Luật sư | ⭐ {stats.averageRating?.toFixed(1) || '0.0'}/5 | ✅ {Math.round(stats.satisfactionRate || 0)}% Hài lòng
           </h2>
@@ -546,6 +536,6 @@ export default function FindLawyer() {
           </main>
         </div>
       </div>
-    </>
+    </Layout>
   );
 }

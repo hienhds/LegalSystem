@@ -16,6 +16,7 @@ import LegalDocuments from "../pages/LegalDocuments";
 import LegalDocumentDetail from "../pages/LegalDocumentDetail";
 import FindLawyer from "../pages/FindLawyer";
 import LawyerDetail from "../pages/LawyerDetail";
+import Contact from "../pages/Contact";
 
 export default function AppRouter() {
   return (
@@ -71,6 +72,7 @@ export default function AppRouter() {
         <Route path="/find-lawyer" element={<FindLawyer />} />
         <Route path="/lawyers/:id" element={<LawyerDetail />} />
         <Route path="/lawyer/:id" element={<LawyerDetail />} />
+        <Route path="/contact" element={<Contact />} />
       </Routes>
     </BrowserRouter>
   );
