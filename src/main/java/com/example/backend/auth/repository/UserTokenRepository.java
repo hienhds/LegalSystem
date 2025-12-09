@@ -9,7 +9,10 @@ import java.util.Optional;
 
 @Repository
 public interface UserTokenRepository extends JpaRepository<UserToken, Long> {
-    Optional<UserToken> findByTokenHashAndAndTokenType(String tokenHash, String tokenType);
+    // Sửa 'AndAnd' thành 'And'
+    Optional<UserToken> findByTokenHashAndTokenType(String tokenHash, String tokenType);
 
-    Optional<UserToken> deleteUserTokenByUserAndAndTokenType(User user, String tokenType);
+    // Sửa tên hàm delete cho chuẩn (bỏ 'UserToken' thừa, bỏ 'And' thừa)
+    // Lưu ý: Hàm delete thường trả về void hoặc Long/Integer (số dòng đã xóa)
+    void deleteByUserAndTokenType(User user, String tokenType);
 }

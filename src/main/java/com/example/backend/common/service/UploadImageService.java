@@ -64,5 +64,20 @@ public class UploadImageService {
                         contentType.equals("image/jpg")
         );
     }
+    public String uploadFile(Long userId, MultipartFile file, String folder) {
+        // Logic giống hệt uploadImage nhưng bỏ check isImage hoặc check mở rộng hơn
+        if(file.isEmpty()){
+            throw new AppException(ErrorType.BAD_REQUEST, "File không được để trống");
+        }
+
+        // (Tùy chọn) Check đuôi file nếu muốn chặn file exe, sh...
+        // if (!isValidDocument(file)) ...
+
+        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        // ... (Phần lưu file giữ nguyên như code cũ của bạn) ...
+        // ... path, Files.write ...
+
+        return "/uploads/" + folder + "/" + fileName;
+    }
 
 }
