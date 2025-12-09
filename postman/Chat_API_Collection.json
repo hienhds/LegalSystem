@@ -1,0 +1,184 @@
+{
+  "info": {
+    "name": "LegalSystem - Chat API",
+    "_postman_id": "chat-api-collection",
+    "description": "API testing for chat/messaging system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create Conversation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/chat/conversations?userId1=1&userId2=2&userType1=CITIZEN&userType2=LAWYER",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "chat", "conversations"],
+          "query": [
+            {
+              "key": "userId1",
+              "value": "1",
+              "description": "ID của user thứ nhất"
+            },
+            {
+              "key": "userId2",
+              "value": "2",
+              "description": "ID của user thứ hai (luật sư)"
+            },
+            {
+              "key": "userType1",
+              "value": "CITIZEN",
+              "description": "Loại user 1: CITIZEN hoặc LAWYER"
+            },
+            {
+              "key": "userType2",
+              "value": "LAWYER",
+              "description": "Loại user 2: CITIZEN hoặc LAWYER"
+            }
+          ]
+        },
+        "description": "Tạo cuộc trò chuyện mới giữa 2 users hoặc lấy conversation đã tồn tại"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Get User Conversations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/chat/conversations?userId=1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "chat", "conversations"],
+          "query": [
+            {
+              "key": "userId",
+              "value": "1",
+              "description": "ID của user cần lấy danh sách conversations"
+            }
+          ]
+        },
+        "description": "Lấy tất cả conversations của một user"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Send Message (REST)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"conversationId\": 1,\n  \"senderId\": 1,\n  \"senderType\": \"CITIZEN\",\n  \"content\": \"Xin chào luật sư, tôi cần tư vấn về hợp đồng lao động\",\n  \"messageType\": \"TEXT\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/chat/messages",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "chat", "messages"]
+        },
+        "description": "Gửi tin nhắn qua REST API (không dùng WebSocket)"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Get Messages (Paginated)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/chat/conversations/1/messages?page=0&size=20",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "chat", "conversations", "1", "messages"],
+          "query": [
+            {
+              "key": "page",
+              "value": "0",
+              "description": "Số trang (bắt đầu từ 0)"
+            },
+            {
+              "key": "size",
+              "value": "20",
+              "description": "Số tin nhắn mỗi trang"
+            }
+          ]
+        },
+        "description": "Lấy tin nhắn của conversation với phân trang (tin mới nhất trước)"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Mark Messages as Read",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/chat/conversations/1/read?userId=1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "chat", "conversations", "1", "read"],
+          "query": [
+            {
+              "key": "userId",
+              "value": "1",
+              "description": "ID của user đánh dấu đã đọc"
+            }
+          ]
+        },
+        "description": "Đánh dấu tất cả tin nhắn trong conversation là đã đọc, reset unread_count về 0"
+      },
+      "response": []
+    },
+    {
+      "name": "6. Send Message with File",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"conversationId\": 1,\n  \"senderId\": 2,\n  \"senderType\": \"LAWYER\",\n  \"content\": \"Tôi đã gửi cho bạn mẫu hợp đồng\",\n  \"messageType\": \"FILE\",\n  \"fileUrl\": \"http://localhost:8080/uploads/documents/contract-sample.pdf\",\n  \"fileName\": \"Hợp_đồng_mẫu.pdf\",\n  \"fileSize\": 1024000\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/chat/messages",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "chat", "messages"]
+        },
+        "description": "Gửi tin nhắn kèm file đính kèm"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ]
+}

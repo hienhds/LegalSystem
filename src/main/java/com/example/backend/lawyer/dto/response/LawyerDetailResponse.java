@@ -17,6 +17,7 @@ public class LawyerDetailResponse {
     private String email;
     private String phoneNumber;
     private String avatarUrl;
+    private String role;
 
     private String barLicenseId;
     private String bio;

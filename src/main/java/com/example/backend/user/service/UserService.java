@@ -3,6 +3,8 @@ package com.example.backend.user.service;
 import com.example.backend.common.exception.AppException;
 import com.example.backend.common.exception.ErrorType;
 import com.example.backend.common.service.UploadImageService;
+import com.example.backend.lawyer.dto.response.LawyerDetailResponse;
+import com.example.backend.lawyer.service.LawyerService;
 import com.example.backend.user.dto.UserProfileUpdateRequest;
 import com.example.backend.user.dto.UserResponse;
 import com.example.backend.user.entity.User;
@@ -19,6 +21,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UploadImageService uploadImageService;
+    private final LawyerService lawyerService;
 
     // Lấy user và trả về DTO
     public UserResponse getUserById(Long userId) {
@@ -37,6 +40,14 @@ public class UserService {
 
         if (request.getAddress() != null) {
             user.setAddress(request.getAddress());
+        }
+        
+        if (request.getFullName() != null) {
+            user.setFullName(request.getFullName());
+        }
+        
+        if (request.getPhoneNumber() != null) {
+            user.setPhoneNumber(request.getPhoneNumber());
         }
 
         userRepository.save(user);
@@ -58,5 +69,20 @@ public class UserService {
         userRepository.save(user);
 
         return avatarUrl;
+    }
+
+    // Lấy profile: nếu là luật sư thì trả về LawyerDetailResponse, không thì trả về UserResponse
+    public Object getUserProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Không tìm thấy người dùng"));
+
+        // Kiểm tra nếu user là luật sư
+        if (user.getLawyer() != null) {
+            Long lawyerId = user.getLawyer().getLawyerId();
+            return lawyerService.getDetail(lawyerId);
+        }
+
+        // Nếu không phải luật sư, trả về UserResponse
+        return UserResponse.from(user);
     }
 }

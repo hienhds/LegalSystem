@@ -18,7 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+// ...existing code...
 public class PasswordResetController {
 
     private final PasswordResetService passwordResetService;

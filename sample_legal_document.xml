@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VanBan>
+  <Ten>LUẬT SỞ HỮU TRÍ TUỆ</Ten>
+  <Loai>LUẬT</Loai>
+  <So>50/2005/QH11</So>
+  <NgayBanHanh>29/11/2005</NgayBanHanh>
+  <NgayHieuLuc>01/07/2006</NgayHieuLuc>
+  <CoQuanBanHanh>QUỐC HỘI NƯỚC CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</CoQuanBanHanh>
+  <NguoiKy>CHỦ TỊCH QUỐC HỘI<br/>Nguyễn Văn An</NguoiKy>
+
+  <Chuong>
+    <So>I</So>
+    <Ten>NHỮNG QUY ĐỊNH CHUNG</Ten>
+  </Chuong>
+
+  <Dieu>
+    <So>1</So>
+    <TieuDe>Phạm vi điều chỉnh</TieuDe>
+    <NoiDung>Luật này quy định về quyền sở hữu trí tuệ đối với các đối tượng là kết quả của hoạt động sáng tạo trong lĩnh vực công nghiệp, khoa học, văn học và nghệ thuật.</NoiDung>
+  </Dieu>
+
+  <Dieu>
+    <So>2</So>
+    <TieuDe>Đối tượng áp dụng</TieuDe>
+    <Khoan>
+      <So>1</So>
+      <NoiDung>Luật này áp dụng đối với tổ chức, cá nhân Việt Nam; tổ chức, cá nhân nước ngoài có liên quan đến quyền sở hữu trí tuệ tại Việt Nam.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>2</So>
+      <NoiDung>Trường hợp điều ước quốc tế mà Cộng hòa xã hội chủ nghĩa Việt Nam là thành viên có quy định khác với quy định của Luật này thì áp dụng quy định của điều ước quốc tế đó.</NoiDung>
+    </Khoan>
+  </Dieu>
+
+  <Dieu>
+    <So>3</So>
+    <TieuDe>Giải thích từ ngữ</TieuDe>
+    <NoiDung>Trong Luật này, các từ ngữ dưới đây được hiểu như sau:</NoiDung>
+    <Khoan>
+      <So>1</So>
+      <NoiDung>Quyền sở hữu trí tuệ là quyền của tổ chức, cá nhân đối với tài sản trí tuệ do chính mình tạo ra hoặc sở hữu.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>2</So>
+      <NoiDung>Tài sản trí tuệ là sản phẩm của trí tuệ con người, bao gồm sáng chế, kiểu dáng công nghiệp, thiết kế bố trí mạch tích hợp bán dẫn, bí mật kinh doanh, nhãn hiệu, tên thương mại, chỉ dẫn địa lý và các đối tượng khác theo quy định của pháp luật.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>3</So>
+      <NoiDung>Sáng chế là giải pháp kỹ thuật dưới dạng sản phẩm hoặc quy trình nhằm giải quyết một vấn đề xác định bằng việc ứng dụng các quy luật tự nhiên.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>4</So>
+      <NoiDung>Nhãn hiệu là dấu hiệu dùng để phân biệt hàng hóa, dịch vụ cùng loại của các tổ chức, cá nhân khác nhau.</NoiDung>
+    </Khoan>
+  </Dieu>
+
+  <Chuong>
+    <So>II</So>
+    <Ten>QUYỀN TÁC GIẢ VÀ QUYỀN LIÊN QUAN</Ten>
+  </Chuong>
+
+  <Dieu>
+    <So>4</So>
+    <TieuDe>Đối tượng quyền tác giả</TieuDe>
+    <Khoan>
+      <So>1</So>
+      <NoiDung>Tác phẩm là sản phẩm của hoạt động sáng tạo trong lĩnh vực văn học, nghệ thuật và khoa học được thể hiện dưới bất kỳ phương thức hoặc hình thức nào.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>2</So>
+      <NoiDung>Tác phẩm được bảo hộ bao gồm: tác phẩm văn học, nghệ thuật, khoa học dưới dạng văn bản, sách, tài liệu, bài giảng; tác phẩm sân khấu, âm nhạc, điện ảnh; tác phẩm nhiếp ảnh, hội họa, điêu khắc, kiến trúc; chương trình máy tính.</NoiDung>
+    </Khoan>
+  </Dieu>
+
+  <Dieu>
+    <So>5</So>
+    <TieuDe>Quyền nhân thân của tác giả</TieuDe>
+    <Khoan>
+      <So>1</So>
+      <NoiDung>Đặt tên cho tác phẩm.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>2</So>
+      <NoiDung>Đứng tên thật hoặc bút danh trên tác phẩm; được nêu tên khi tác phẩm được công bố, sử dụng.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>3</So>
+      <NoiDung>Công bố tác phẩm hoặc cho phép người khác công bố tác phẩm.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>4</So>
+      <NoiDung>Bảo vệ sự toàn vẹn của tác phẩm, không cho phép người khác sửa chữa, cắt xén hoặc xuyên tạc tác phẩm dưới bất kỳ hình thức nào gây phương hại đến danh dự, uy tín của tác giả.</NoiDung>
+    </Khoan>
+  </Dieu>
+
+  <Chuong>
+    <So>III</So>
+    <Ten>QUYỀN SỞ HỮU CÔNG NGHIỆP</Ten>
+  </Chuong>
+
+  <Dieu>
+    <So>6</So>
+    <TieuDe>Điều kiện bảo hộ sáng chế</TieuDe>
+    <NoiDung>Sáng chế được bảo hộ khi đáp ứng đủ các điều kiện sau đây:</NoiDung>
+    <Khoan>
+      <So>1</So>
+      <NoiDung>Có tính mới: sáng chế được coi là có tính mới nếu chưa bị bộc lộ công khai dưới hình thức văn bản, hình vẽ, phương tiện điện tử hoặc bất kỳ hình thức nào khác ở trong nước hoặc ngoài nước.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>2</So>
+      <NoiDung>Có trình độ sáng tạo: sáng chế được coi là có trình độ sáng tạo nếu không được suy ra một cách dễ dàng từ trình độ kỹ thuật phổ biến đối với người có hiểu biết về lĩnh vực kỹ thuật đó.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>3</So>
+      <NoiDung>Có khả năng áp dụng công nghiệp: sáng chế được coi là có khả năng áp dụng công nghiệp nếu có thể thực hiện được trong sản xuất hoặc sử dụng ở bất kỳ lĩnh vực nào.</NoiDung>
+    </Khoan>
+  </Dieu>
+
+  <Dieu>
+    <So>7</So>
+    <TieuDe>Quyền của chủ sở hữu bằng độc quyền sáng chế</TieuDe>
+    <Khoan>
+      <So>1</So>
+      <NoiDung>Tự mình thực hiện sáng chế được bảo hộ.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>2</So>
+      <NoiDung>Cho phép tổ chức, cá nhân khác thực hiện sáng chế được bảo hộ.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>3</So>
+      <NoiDung>Cấm tổ chức, cá nhân khác thực hiện sáng chế được bảo hộ.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>4</So>
+      <NoiDung>Chuyển giao quyền sở hữu bằng độc quyền sáng chế.</NoiDung>
+    </Khoan>
+  </Dieu>
+
+  <Dieu>
+    <So>8</So>
+    <TieuDe>Thời hạn hiệu lực của bằng độc quyền sáng chế</TieuDe>
+    <Khoan>
+      <So>1</So>
+      <NoiDung>Thời hạn hiệu lực của bằng độc quyền sáng chế là 20 năm kể từ ngày nộp đơn.</NoiDung>
+    </Khoan>
+    <Khoan>
+      <So>2</So>
+      <NoiDung>Thời hạn hiệu lực của bằng độc quyền giải pháp hữu ích là 10 năm kể từ ngày nộp đơn.</NoiDung>
+    </Khoan>
+  </Dieu>
+</VanBan>

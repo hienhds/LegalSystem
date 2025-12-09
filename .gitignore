@@ -36,3 +36,19 @@ out/
 ### VS Code ###
 .vscode/
 uploads/
+
+# Frontend React/Vite ignore
+frontend/my-react-app/node_modules/
+frontend/my-react-app/dist/
+frontend/my-react-app/build/
+frontend/my-react-app/.env
+frontend/my-react-app/.DS_Store
+frontend/my-react-app/.vscode/
+frontend/my-react-app/.idea/
+frontend/my-react-app/coverage/
+frontend/my-react-app/.vite/
+frontend/my-react-app/npm-debug.log*
+frontend/my-react-app/yarn-error.log
+frontend/my-react-app/__snapshots__/
+frontend/my-react-app/Thumbs.db
+frontend/my-react-app/*.tmp

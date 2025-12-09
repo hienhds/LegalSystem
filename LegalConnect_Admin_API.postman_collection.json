@@ -1,0 +1,390 @@
+{
+	"info": {
+		"name": "LegalConnect Admin API",
+		"description": "Collection các API quản trị cho hệ thống LegalConnect",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Dashboard",
+			"item": [
+				{
+					"name": "Get Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/dashboard/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "dashboard", "stats"]
+						}
+					}
+				},
+				{
+					"name": "Get Registration Chart",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/dashboard/registrations?days=7",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "dashboard", "registrations"],
+							"query": [
+								{
+									"key": "days",
+									"value": "7",
+									"description": "Số ngày muốn xem (mặc định 7)"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Lawyer Verification Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/dashboard/lawyer-verification-status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "dashboard", "lawyer-verification-status"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. User Management",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users?page=0&size=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "users"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Số trang (bắt đầu từ 0)"
+								},
+								{
+									"key": "size",
+									"value": "20",
+									"description": "Số lượng item mỗi trang"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Tìm kiếm theo email hoặc tên",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "",
+									"description": "Lọc theo trạng thái (true/false)",
+									"disabled": true
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users?page=0&size=20&search=nguyen",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "users"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								},
+								{
+									"key": "search",
+									"value": "nguyen"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Lock User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users/1/lock",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "users", "1", "lock"]
+						}
+					}
+				},
+				{
+					"name": "Unlock User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users/1/unlock",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "users", "1", "unlock"]
+						}
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "users", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Lawyer Management",
+			"item": [
+				{
+					"name": "Get All Lawyers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/lawyers?page=0&size=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "lawyers"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Số trang (bắt đầu từ 0)"
+								},
+								{
+									"key": "size",
+									"value": "20",
+									"description": "Số lượng item mỗi trang"
+								},
+								{
+									"key": "status",
+									"value": "",
+									"description": "PENDING, APPROVED, REJECTED",
+									"disabled": true
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Pending Lawyers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/lawyers?page=0&size=20&status=PENDING",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "lawyers"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								},
+								{
+									"key": "status",
+									"value": "PENDING"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Lawyer By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/lawyers/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "lawyers", "1"]
+						}
+					}
+				},
+				{
+					"name": "Verify Lawyer (Approve)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/lawyers/1/verify",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "lawyers", "1", "verify"]
+						}
+					}
+				},
+				{
+					"name": "Reject Lawyer",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/lawyers/1/reject",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "lawyers", "1", "reject"]
+						}
+					}
+				},
+				{
+					"name": "Update Status (Generic)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/lawyers/1/status?status=APPROVED",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "lawyers", "1", "status"],
+							"query": [
+								{
+									"key": "status",
+									"value": "APPROVED",
+									"description": "PENDING, APPROVED, REJECTED"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Lawyer",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/lawyers/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "lawyers", "1"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

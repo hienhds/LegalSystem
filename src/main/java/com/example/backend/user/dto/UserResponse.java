@@ -22,6 +22,7 @@ public class UserResponse {
     private String phoneNumber;
     private String address;
     private String avatarUrl;
+    private String role;
     private LocalDateTime createdAt;
     public static UserResponse from(User user) {
         return UserResponse.builder()
@@ -31,6 +32,8 @@ public class UserResponse {
                 .phoneNumber(user.getPhoneNumber())
                 .avatarUrl(user.getAvatarUrl())
                 .address(user.getAddress())
+                .role(user.getRoleName())
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 }

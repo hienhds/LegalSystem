@@ -1,5 +1,6 @@
 package com.example.backend.lawyer.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +18,7 @@ public class LawyerSpecialization {
     @Column(name = "lawyer_spec_id")
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lawyer_id", nullable = false)
     private Lawyer lawyer;

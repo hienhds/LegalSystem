@@ -4,11 +4,16 @@ import com.example.backend.common.dto.ApiResponse;
 import com.example.backend.common.security.CustomUserDetails;
 import com.example.backend.common.service.UploadImageService;
 import com.example.backend.lawyer.dto.request.LawyerRequest;
+import com.example.backend.lawyer.dto.request.UpdateLawyerProfileRequest;
+import com.example.backend.lawyer.dto.response.LawyerDetailResponse;
+import com.example.backend.lawyer.dto.response.LawyerListResponse;
 import com.example.backend.lawyer.dto.response.LawyerResponse;
+import com.example.backend.lawyer.dto.response.LawyerStatsResponse;
 import com.example.backend.lawyer.service.LawyerService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +31,43 @@ public class LawyerController {
 
     private final LawyerService lawyerService;
     private final UploadImageService uploadImageService;
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<LawyerListResponse>> getLawyerById(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        
+        LawyerListResponse lawyer = lawyerService.getLawyerById(id);
+        
+        ApiResponse<LawyerListResponse> response = ApiResponse.<LawyerListResponse>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .message("Lấy thông tin luật sư thành công")
+                .data(lawyer)
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/stats")
+    public ResponseEntity<ApiResponse<LawyerStatsResponse>> getStats(
+            HttpServletRequest request) {
+        
+        LawyerStatsResponse stats = lawyerService.getStats();
+        
+        ApiResponse<LawyerStatsResponse> response = ApiResponse.<LawyerStatsResponse>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .message("Lấy thống kê luật sư thành công")
+                .data(stats)
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+        
+        return ResponseEntity.ok(response);
+    }
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<LawyerResponse>> createLawyer(
             @RequestParam("data") String data,           // <--- String, không phải LawyerRequest
@@ -72,6 +114,50 @@ public class LawyerController {
                 .path(request.getRequestURI())
                 .build();
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<LawyerDetailResponse>> updateLawyerProfile(
+            @Valid @RequestBody UpdateLawyerProfileRequest request,
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletRequest servletRequest) {
+
+        Long userId = user.getUser().getUserId();
+        LawyerDetailResponse lawyerDetail = lawyerService.updateLawyerProfile(userId, request);
+
+        ApiResponse<LawyerDetailResponse> response = ApiResponse.<LawyerDetailResponse>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .message("Cập nhật thông tin luật sư thành công")
+                .data(lawyerDetail)
+                .path(servletRequest.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<ApiResponse<org.springframework.data.domain.Page<com.example.backend.lawyer.dto.response.LawyerReviewResponse>>> getLawyerReviews(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request) {
+        
+        org.springframework.data.domain.Page<com.example.backend.lawyer.dto.response.LawyerReviewResponse> reviews = 
+                lawyerService.getLawyerReviews(id, page, size);
+        
+        ApiResponse<org.springframework.data.domain.Page<com.example.backend.lawyer.dto.response.LawyerReviewResponse>> response = 
+                ApiResponse.<org.springframework.data.domain.Page<com.example.backend.lawyer.dto.response.LawyerReviewResponse>>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .message("Lấy danh sách đánh giá thành công")
+                .data(reviews)
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+        
         return ResponseEntity.ok(response);
     }
 

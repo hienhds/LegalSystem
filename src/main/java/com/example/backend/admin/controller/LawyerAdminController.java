@@ -1,7 +1,6 @@
 package com.example.backend.admin.controller;
 
 import com.example.backend.common.dto.ApiResponse;
-import com.example.backend.common.security.CustomUserDetails;
 import com.example.backend.lawyer.dto.request.FilterLawyerRequest;
 import com.example.backend.lawyer.dto.response.LawyerDetailResponse;
 import com.example.backend.lawyer.dto.response.LawyerListResponse;
@@ -12,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -89,6 +87,71 @@ public class LawyerAdminController {
                         .status(HttpStatus.OK.value())
                         .message("Status updated successfully")
                         .data(msg)
+                        .path(request.getRequestURI())
+                        .timestamp(Instant.now())
+                        .traceId(UUID.randomUUID().toString())
+                        .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 4. Verify lawyer (approve)
+    @PutMapping("/{id}/verify")
+    public ResponseEntity<ApiResponse<String>> verifyLawyer(
+            @PathVariable Long id,
+            HttpServletRequest request
+    ) {
+        String msg = lawyerService.updateStatus(id, VerificationStatus.APPROVED);
+
+        ApiResponse<String> response =
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Xác minh luật sư thành công")
+                        .data(msg)
+                        .path(request.getRequestURI())
+                        .timestamp(Instant.now())
+                        .traceId(UUID.randomUUID().toString())
+                        .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 5. Reject lawyer
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<ApiResponse<String>> rejectLawyer(
+            @PathVariable Long id,
+            HttpServletRequest request
+    ) {
+        String msg = lawyerService.updateStatus(id, VerificationStatus.REJECTED);
+
+        ApiResponse<String> response =
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Từ chối xác minh luật sư thành công")
+                        .data(msg)
+                        .path(request.getRequestURI())
+                        .timestamp(Instant.now())
+                        .traceId(UUID.randomUUID().toString())
+                        .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 6. Delete lawyer
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteLawyer(
+            @PathVariable Long id,
+            HttpServletRequest request
+    ) {
+        lawyerService.deleteLawyer(id);
+
+        ApiResponse<Void> response =
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Xóa luật sư thành công")
                         .path(request.getRequestURI())
                         .timestamp(Instant.now())
                         .traceId(UUID.randomUUID().toString())
