@@ -17,8 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.net.http.HttpRequest;
-
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -40,11 +38,13 @@ public class SignUpService {
                 throw new AppException(ErrorType.CONFLICT, "Email đã tồn tại và đã được kích hoạt.");
             }
 
-            // Nếu chưa kích hoạt → gửi lại email xác nhận
+            // --- ĐOẠN SỬA 1: Tắt gửi lại email xác thực để tránh lỗi ---
+            /*
             UserToken newToken = tokenService.createVerificationToken(existing);
             emailService.sendVerificationEmail(existing.getEmail(), newToken.getTokenHash());
+            */
             log.info("Resent verification email to {}", existing.getEmail());
-            throw new AppException(ErrorType.CONFLICT, "Tài khoản chưa được kích hoạt. Đã gửi lại email xác nhận.");
+            throw new AppException(ErrorType.CONFLICT, "Tài khoản chưa được kích hoạt. (Đã tắt gửi lại email)");
         });
 
         // 2️⃣ Kiểm tra số điện thoại trùng
@@ -62,18 +62,23 @@ public class SignUpService {
         user.setEmail(request.getEmail());
         user.setPhoneNumber(request.getPhoneNumber());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setActive(false); // chưa kích hoạt
+
+        // --- ĐOẠN SỬA 2: Kích hoạt luôn tài khoản để test ---
+        user.setActive(true); // Thay vì false, để true luôn
+
         userRepository.save(user);
 
         // 5️⃣ Gán vai trò mặc định
         UserRole userRole = new UserRole(user, role);
         userRoleRepository.save(userRole);
 
-        // 6️⃣ Tạo token xác minh & gửi email
+        // --- ĐOẠN SỬA 3: Tắt tạo token và gửi email ---
+        /*
         UserToken verificationToken = tokenService.createVerificationToken(user);
         emailService.sendVerificationEmail(user.getEmail(), verificationToken.getTokenHash());
+        */
 
-        log.info("User {} registered successfully. Verification email sent.", user.getEmail());
+        log.info("User {} registered successfully (Auto Activated).", user.getEmail());
         return user;
     }
 }

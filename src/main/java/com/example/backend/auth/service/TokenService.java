@@ -22,8 +22,7 @@ public class TokenService {
     private final UserTokenRepository userTokenRepository;
 
     public UserToken createVerificationToken(User user){
-        userTokenRepository.deleteUserTokenByUserAndAndTokenType(user, "VERIFICATION");
-
+        userTokenRepository.deleteByUserAndTokenType(user, "VERIFICATION");
         UserToken userToken = new UserToken();
 
         userToken.setUser(user);
@@ -40,8 +39,7 @@ public class TokenService {
 
     // validate
     public UserToken validateVerificationToken(String tokenHash){
-        Optional<UserToken> optionalUserToken = userTokenRepository.findByTokenHashAndAndTokenType(tokenHash, "VERIFICATION");
-
+        Optional<UserToken> optionalUserToken = userTokenRepository.findByTokenHashAndTokenType(tokenHash, "VERIFICATION");
         if (optionalUserToken.isEmpty()) {
             throw new AppException(ErrorType.TOKEN_INVALID, "Invalid verification token");
         }
