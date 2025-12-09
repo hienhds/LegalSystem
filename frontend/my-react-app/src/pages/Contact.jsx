@@ -12,6 +12,12 @@ export default function Contact() {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [imageModalUrl, setImageModalUrl] = useState(null);
+  const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   // Auto scroll to bottom when new message arrives
@@ -142,48 +148,74 @@ export default function Contact() {
   };
 
   const sendMessage = async () => {
-    if (!messageInput.trim() || !selectedConversation) return;
+    if ((!messageInput.trim() && !selectedFile) || !selectedConversation) return;
 
     // Get the actual user ID - could be userId or lawyerId
     const actualUserId = user.userId || user.lawyerId;
     
-    const messageData = {
-      conversationId: selectedConversation.conversationId,
-      senderId: actualUserId,
-      senderType: user.lawyerId ? "LAWYER" : "CITIZEN",
-      content: messageInput,
-      messageType: "TEXT"
-    };
-
-    // Clear input immediately for better UX
+    // Clear inputs immediately for better UX
     const currentMessage = messageInput;
+    const currentFile = selectedFile;
     setMessageInput("");
+    clearSelectedFile();
 
     try {
-      // Send via REST API only - backend will broadcast via WebSocket
-      const response = await apiFetch(
-        'http://localhost:8080/api/chat/messages',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(messageData)
+      // If there's a file, send as FormData
+      if (currentFile) {
+        const formData = new FormData();
+        formData.append('conversationId', selectedConversation.conversationId);
+        formData.append('senderId', actualUserId);
+        formData.append('senderType', user.lawyerId ? "LAWYER" : "CITIZEN");
+        formData.append('content', currentMessage || 'Đã gửi file');
+        formData.append('messageType', currentFile.type.startsWith('image/') ? 'IMAGE' : 'FILE');
+        formData.append('file', currentFile);
+
+        const response = await apiFetch(
+          'http://localhost:8080/api/chat/messages/upload',
+          {
+            method: 'POST',
+            body: formData
+          }
+        );
+        
+        const data = await response.json();
+        if (data.success) {
+          loadConversations();
+        } else {
+          setMessageInput(currentMessage);
+          setSelectedFile(currentFile);
+          alert('Gửi file thất bại!');
         }
-      );
-      
-      const data = await response.json();
-      if (data.success) {
-        // Don't add message here - it will come via WebSocket broadcast
-        // This prevents duplicate messages
-        // Reload conversations to update last message
-        loadConversations();
       } else {
-        // Restore input if failed
-        setMessageInput(currentMessage);
+        // Send text message
+        const messageData = {
+          conversationId: selectedConversation.conversationId,
+          senderId: actualUserId,
+          senderType: user.lawyerId ? "LAWYER" : "CITIZEN",
+          content: currentMessage,
+          messageType: "TEXT"
+        };
+
+        const response = await apiFetch(
+          'http://localhost:8080/api/chat/messages',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(messageData)
+          }
+        );
+        
+        const data = await response.json();
+        if (data.success) {
+          loadConversations();
+        } else {
+          setMessageInput(currentMessage);
+        }
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      // Restore input if failed
       setMessageInput(currentMessage);
+      setSelectedFile(currentFile);
     }
   };
 
@@ -192,6 +224,90 @@ export default function Contact() {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Vui lòng chọn file ảnh!');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Kích thước ảnh không được vượt quá 5MB!');
+        return;
+      }
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Kích thước file không được vượt quá 10MB!');
+        return;
+      }
+      setSelectedFile(file);
+      setPreviewUrl(null);
+    }
+  };
+
+  const clearSelectedFile = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  };
+
+  const toggleMenu = (messageId) => {
+    setOpenMenuId(openMenuId === messageId ? null : messageId);
+  };
+
+  const downloadImage = (imageUrl, fileName) => {
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = fileName || 'image.jpg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setOpenMenuId(null);
+  };
+
+  const openImageModal = (imageUrl) => {
+    setImageModalUrl(imageUrl);
+  };
+
+  const closeImageModal = () => {
+    setImageModalUrl(null);
+  };
+
+  const deleteMessage = (messageId) => {
+    // TODO: Implement delete message API
+    console.log('Delete message:', messageId);
+    setOpenMenuId(null);
+  };
+
+  const copyMessage = (content) => {
+    navigator.clipboard.writeText(content);
+    setOpenMenuId(null);
+  };
+
+  const replyMessage = (messageId) => {
+    // TODO: Implement reply functionality
+    console.log('Reply to message:', messageId);
+    setOpenMenuId(null);
+  };
+
+  const forwardMessage = (messageId) => {
+    // TODO: Implement forward functionality
+    console.log('Forward message:', messageId);
+    setOpenMenuId(null);
   };
 
   if (loading) {
@@ -307,8 +423,11 @@ export default function Contact() {
                   messages.map((msg) => {
                     const currentUserId = user?.userId || user?.lawyerId;
                     const isFromMe = msg.senderId === currentUserId;
+                    const isImage = msg.messageType === 'IMAGE' || (msg.fileUrl && msg.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+                    const fullImageUrl = msg.fileUrl ? `http://localhost:8080${msg.fileUrl}` : null;
+                    
                     return (
-                      <div key={msg.messageId} className={`flex items-start gap-3 ${isFromMe ? 'justify-end' : ''}`}>
+                      <div key={msg.messageId} className={`flex items-start gap-3 ${isFromMe ? 'justify-end' : ''} group relative`}>
                         {!isFromMe && (
                           <img 
                             alt={selectedConversation.otherUser?.fullName || selectedConversation.otherUser?.name || 'User'} 
@@ -317,24 +436,61 @@ export default function Contact() {
                             onError={(e) => { e.target.style.display = 'none'; }}
                           />
                         )}
+                        
+                        {/* Three-dot menu button - outside message container */}
+                        <button
+                          onClick={() => toggleMenu(msg.messageId)}
+                          className={`absolute top-0 ${isFromMe ? 'right-11' : 'left-11'} p-1 rounded-full hover:bg-hover-light dark:hover:bg-hover-dark text-text-secondary-light dark:text-text-secondary-dark opacity-0 group-hover:opacity-100 transition-opacity z-10`}
+                          title="Tuỳ chọn"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>more_horiz</span>
+                        </button>
+                        
                         <div className={`flex flex-col items-${isFromMe ? 'end' : 'start'} gap-1`}>
+                          {/* Message content */}
                           <div className={`${
                             isFromMe 
                               ? 'bg-primary text-white rounded-xl rounded-tr-sm' 
                               : 'bg-surface-light dark:bg-surface-dark rounded-xl rounded-tl-sm'
-                          } p-3 max-w-md`}>
-                            <p>{msg.content}</p>
-                            {msg.fileUrl && (
+                          } ${isImage && !msg.content ? 'p-1' : 'p-3'} max-w-md relative`}>
+                            {msg.content && <p className="break-words">{msg.content}</p>}
+                            
+                            {/* Display image directly if it's an image */}
+                            {isImage && fullImageUrl && (
+                              <div className="mt-2 relative group/img">
+                                <img 
+                                  src={fullImageUrl} 
+                                  alt="Hình ảnh" 
+                                  className="max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                  onClick={() => openImageModal(fullImageUrl)}
+                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                />
+                                {/* Quick action overlay */}
+                                <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/10 rounded-lg transition-all flex items-center justify-center opacity-0 group-hover/img:opacity-100">
+                                  <button 
+                                    onClick={() => downloadImage(fullImageUrl, msg.fileName || 'image.jpg')}
+                                    className="bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg"
+                                    title="Lưu ảnh"
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: 20 }}>download</span>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Display file info if it's not an image */}
+                            {msg.fileUrl && !isImage && (
                               <div className="mt-2 flex items-center gap-3 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark">
                                 <span className="material-symbols-outlined text-red-500">description</span>
-                                <div className="flex-1">
-                                  <p className="font-medium text-sm">{msg.fileName || 'File'}</p>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm truncate">{msg.fileName || 'File'}</p>
                                   <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Tải xuống</p>
                                 </div>
                                 <a 
-                                  href={msg.fileUrl} 
+                                  href={fullImageUrl} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
+                                  download
                                   className="p-2 rounded-full hover:bg-hover-light dark:hover:bg-hover-dark text-text-secondary-light dark:text-text-secondary-dark transition-colors"
                                 >
                                   <span className="material-symbols-outlined" style={{ fontSize: 20 }}>download</span>
@@ -342,13 +498,65 @@ export default function Contact() {
                               </div>
                             )}
                           </div>
-                          <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
-                            {new Date(msg.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                          {isFromMe && msg.status === "READ" && (
-                            <span className="material-symbols-outlined text-primary" style={{ fontSize: 16 }}>done_all</span>
-                          )}
+                          
+                          {/* Time and status */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                              {new Date(msg.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            {isFromMe && msg.status === "READ" && (
+                              <span className="material-symbols-outlined text-primary" style={{ fontSize: 16 }}>done_all</span>
+                            )}
+                          </div>
                         </div>
+                        
+                        {/* Dropdown menu - outside message column */}
+                        {openMenuId === msg.messageId && (
+                          <div className={`absolute ${isFromMe ? 'right-11' : 'left-11'} top-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-20 min-w-[180px]`}>
+                              {isImage && fullImageUrl && (
+                                <button
+                                  onClick={() => downloadImage(fullImageUrl, msg.fileName || 'image.jpg')}
+                                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
+                                >
+                                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
+                                  Lưu ảnh
+                                </button>
+                              )}
+                              <button
+                                onClick={() => replyMessage(msg.messageId)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>reply</span>
+                                Trả lời
+                              </button>
+                              <button
+                                onClick={() => forwardMessage(msg.messageId)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>forward</span>
+                                Chuyển tiếp
+                              </button>
+                              {msg.content && (
+                                <button
+                                  onClick={() => copyMessage(msg.content)}
+                                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
+                                >
+                                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>content_copy</span>
+                                  Sao chép
+                                </button>
+                              )}
+                              {isFromMe && (
+                                <button
+                                  onClick={() => deleteMessage(msg.messageId)}
+                                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-sm text-red-500"
+                                >
+                                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
+                                  Thu hồi
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        
                         {isFromMe && (
                           <img 
                             alt="Ảnh đại diện của bạn" 
@@ -365,14 +573,58 @@ export default function Contact() {
                 <div ref={messagesEndRef} />
               </div>
               <footer className="flex-shrink-0 p-4 border-t border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark">
+                {/* File Preview */}
+                {(selectedFile || previewUrl) && (
+                  <div className="mb-3 p-3 bg-background-light dark:bg-background-dark rounded-lg border border-border-light dark:border-border-dark">
+                    <div className="flex items-center gap-3">
+                      {previewUrl ? (
+                        <img src={previewUrl} alt="Preview" className="w-16 h-16 object-cover rounded" />
+                      ) : (
+                        <div className="w-16 h-16 flex items-center justify-center bg-primary/10 rounded">
+                          <span className="material-symbols-outlined text-primary">description</span>
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{selectedFile?.name}</p>
+                        <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                          {(selectedFile?.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <button 
+                        onClick={clearSelectedFile}
+                        className="p-2 rounded-full hover:bg-hover-light dark:hover:bg-hover-dark text-text-secondary-light dark:text-text-secondary-dark transition-colors"
+                      >
+                        <span className="material-symbols-outlined">close</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center space-x-2">
-                  <button className="p-2 rounded-full hover:bg-hover-light dark:hover:bg-hover-dark text-primary transition-colors">
-                    <span className="material-symbols-outlined">add_circle</span>
-                  </button>
-                  <button className="p-2 rounded-full hover:bg-hover-light dark:hover:bg-hover-dark text-primary transition-colors">
+                  <input 
+                    ref={imageInputRef}
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={handleImageSelect}
+                  />
+                  <input 
+                    ref={fileInputRef}
+                    type="file" 
+                    className="hidden" 
+                    onChange={handleFileSelect}
+                  />
+                  <button 
+                    className="p-2 rounded-full hover:bg-hover-light dark:hover:bg-hover-dark text-primary transition-colors"
+                    onClick={() => imageInputRef.current?.click()}
+                    title="Gửi ảnh"
+                  >
                     <span className="material-symbols-outlined">image</span>
                   </button>
-                  <button className="p-2 rounded-full hover:bg-hover-light dark:hover:bg-hover-dark text-primary transition-colors">
+                  <button 
+                    className="p-2 rounded-full hover:bg-hover-light dark:hover:bg-hover-dark text-primary transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Gửi file"
+                  >
                     <span className="material-symbols-outlined">attach_file</span>
                   </button>
                   <div className="flex-1 relative">
@@ -404,6 +656,47 @@ export default function Contact() {
           )}
         </section>
       </div>
+      
+      {/* Image Modal (like Zalo) */}
+      {imageModalUrl && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={closeImageModal}
+        >
+          <button 
+            className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+            onClick={closeImageModal}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 32 }}>close</span>
+          </button>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 z-10">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                downloadImage(imageModalUrl, 'image.jpg');
+              }}
+              className="bg-white/90 hover:bg-white text-gray-800 rounded-full px-4 py-2 shadow-lg flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>download</span>
+              Lưu ảnh
+            </button>
+          </div>
+          <img 
+            src={imageModalUrl} 
+            alt="Xem ảnh" 
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+      
+      {/* Click outside to close menu */}
+      {openMenuId && (
+        <div 
+          className="fixed inset-0 z-[5]" 
+          onClick={() => setOpenMenuId(null)}
+        />
+      )}
     </Layout>
   );
 }
