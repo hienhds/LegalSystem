@@ -4,19 +4,17 @@
 ---
 
 ## 🔗 **Base Configuration**
-- **Base URL**: `/api/cases`
-- **Authentication**: Yêu cầu Header `Authorization: Bearer {jwt_token}` cho tất cả các request.
+- Base URL: `/api/cases`
+- Authentication: Yêu cầu Header `Authorization: Bearer {jwt_token}` cho tất cả các request.
 
 ---
 
-## 1. 📝 **Tạo Vụ Án Mới**
-
+## 1. 📝 Tạo Vụ Án Mới
 Người dùng (Citizen) tạo hồ sơ vụ án mới.
 
-### **POST** `/api/cases`
+### POST /api/cases
 
-**Request Body:**
-```json
+Request Body (JSON):
 {
   "title": "Tranh chấp đất đai tại xã A",
   "description": "Nội dung chi tiết vụ việc: Hàng xóm lấn chiếm 2m đất...",
@@ -24,6 +22,8 @@ Người dùng (Citizen) tạo hồ sơ vụ án mới.
   "lawyerId": 5,
   "budget": 5000000
 }
+
+Response (201 Created):
 {
   "success": true,
   "message": "Tạo vụ án thành công",
@@ -34,6 +34,17 @@ Người dùng (Citizen) tạo hồ sơ vụ án mới.
     "createdAt": "2025-12-10T08:00:00Z"
   }
 }
+
+---
+
+## 2. 🔍 Lấy Chi Tiết Vụ Án
+
+### GET /api/cases/{id}
+
+Parameters:
+- id (path): ID vụ án (ví dụ: 101)
+
+Response (200 OK):
 {
   "success": true,
   "message": "Lấy thông tin vụ án thành công",
@@ -59,11 +70,21 @@ Người dùng (Citizen) tạo hồ sơ vụ án mới.
     ]
   }
 }
+
+---
+
+## 3. 📈 Cập Nhật Tiến Độ Vụ Án
+
+### POST /api/cases/{id}/updates
+
+Request Body (JSON):
 {
   "content": "Đã hoàn tất nộp án phí sơ thẩm",
   "stage": "PREPARING_TRIAL",
   "note": "Khách hàng cần giữ lại biên lai"
 }
+
+Response (200 OK):
 {
   "success": true,
   "message": "Cập nhật tiến độ thành công",
@@ -74,8 +95,24 @@ Người dùng (Citizen) tạo hồ sơ vụ án mới.
     "updatedAt": "2025-12-12T10:30:00Z"
   }
 }
+
+---
+
+## 4. 📎 Upload Tài Liệu Vụ Án
+
+### POST /api/cases/{id}/documents
+
+Headers:
+- Content-Type: multipart/form-data
+
+Form Data:
+- file: (File object — .pdf, .jpg, .png, .docx)
+
+Response (200 OK):
 {
   "success": true,
   "message": "Upload tài liệu thành công",
   "data": "http://localhost:8080/uploads/cases/101/bang_chung_v1.pdf"
 }
+
+---
