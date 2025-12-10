@@ -6,6 +6,7 @@ export const useChatWebSocket = (conversationId, onMessageReceived) => {
   const clientRef = useRef(null);
   const isConnectedRef = useRef(false);
   const subscriptionRef = useRef(null);
+  const readSubscriptionRef = useRef(null);
   const onMessageReceivedRef = useRef(onMessageReceived);
 
   // Keep callback ref updated
@@ -14,32 +15,30 @@ export const useChatWebSocket = (conversationId, onMessageReceived) => {
   }, [onMessageReceived]);
 
   const connect = useCallback(() => {
-    if (clientRef.current) {
-      console.log('WebSocket already exists, skipping connect');
+    if (clientRef.current?.active) {
       return;
     }
 
-    console.log('🔌 Connecting to WebSocket...');
     const socket = new SockJS('http://localhost:8080/chat');
     const stompClient = new Client({
       webSocketFactory: () => socket,
-      debug: (str) => {
-        console.log('STOMP:', str);
-      },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
+      reconnectDelay: 5000, // Auto-reconnect after 5 seconds
+      heartbeatIncoming: 10000, // Expect heartbeat every 10s
+      heartbeatOutgoing: 10000, // Send heartbeat every 10s
       onConnect: () => {
-        console.log('✅ Connected to WebSocket');
         isConnectedRef.current = true;
+        console.log('WebSocket connected');
       },
       onStompError: (frame) => {
-        console.error('❌ STOMP error:', frame);
+        console.error('STOMP error:', frame);
         isConnectedRef.current = false;
       },
       onWebSocketClose: () => {
-        console.log('🔌 WebSocket connection closed');
         isConnectedRef.current = false;
+        console.log('WebSocket closed - will reconnect');
+      },
+      onWebSocketError: (error) => {
+        console.error('WebSocket error:', error);
       }
     });
 
@@ -50,33 +49,34 @@ export const useChatWebSocket = (conversationId, onMessageReceived) => {
   // Subscribe to conversation when conversationId changes
   useEffect(() => {
     if (!conversationId || !clientRef.current) {
-      console.log('Skip subscription: conversationId or client not ready');
       return;
     }
 
     // Unsubscribe previous conversation
     if (subscriptionRef.current) {
-      console.log('Unsubscribing from previous conversation');
       subscriptionRef.current.unsubscribe();
       subscriptionRef.current = null;
+    }
+    if (readSubscriptionRef.current) {
+      readSubscriptionRef.current.unsubscribe();
+      readSubscriptionRef.current = null;
     }
 
     // Wait for connection with timeout
     let attempts = 0;
-    const maxAttempts = 50; // 5 seconds max
+    const maxAttempts = 50;
     
     const subscribeWhenReady = () => {
       attempts++;
       
       if (isConnectedRef.current && clientRef.current && clientRef.current.connected) {
-        console.log(`📡 Subscribing to /topic/conversations/${conversationId}`);
         try {
+          // Subscribe to new messages
           subscriptionRef.current = clientRef.current.subscribe(
             `/topic/conversations/${conversationId}`,
             (message) => {
               try {
                 const receivedMessage = JSON.parse(message.body);
-                console.log('📨 WebSocket received message:', receivedMessage);
                 if (onMessageReceivedRef.current) {
                   onMessageReceivedRef.current(receivedMessage);
                 }
@@ -85,19 +85,33 @@ export const useChatWebSocket = (conversationId, onMessageReceived) => {
               }
             }
           );
-          console.log('✅ Successfully subscribed to conversation');
+          
+          // Subscribe to read status updates
+          readSubscriptionRef.current = clientRef.current.subscribe(
+            `/topic/conversations/${conversationId}/read`,
+            (message) => {
+              try {
+                if (onMessageReceivedRef.current) {
+                  onMessageReceivedRef.current({ 
+                    type: 'MESSAGE_READ',
+                    conversationId: conversationId,
+                    userId: message.body
+                  });
+                }
+              } catch (error) {
+                console.error('Error parsing read status:', error);
+              }
+            }
+          );
+          
         } catch (error) {
-          console.error('❌ Error subscribing:', error);
+          console.error('Error subscribing:', error);
         }
       } else if (attempts < maxAttempts) {
-        console.log(`Waiting for connection... (attempt ${attempts}/${maxAttempts})`);
         setTimeout(subscribeWhenReady, 100);
-      } else {
-        console.error('❌ Failed to connect after maximum attempts');
       }
     };
 
-    // Start subscription attempt after a small delay to let connection establish
     const timeoutId = setTimeout(subscribeWhenReady, 200);
 
     return () => {
@@ -105,6 +119,10 @@ export const useChatWebSocket = (conversationId, onMessageReceived) => {
       if (subscriptionRef.current) {
         subscriptionRef.current.unsubscribe();
         subscriptionRef.current = null;
+      }
+      if (readSubscriptionRef.current) {
+        readSubscriptionRef.current.unsubscribe();
+        readSubscriptionRef.current = null;
       }
     };
   }, [conversationId]);
@@ -114,23 +132,27 @@ export const useChatWebSocket = (conversationId, onMessageReceived) => {
       subscriptionRef.current.unsubscribe();
       subscriptionRef.current = null;
     }
+    if (readSubscriptionRef.current) {
+      readSubscriptionRef.current.unsubscribe();
+      readSubscriptionRef.current = null;
+    }
     if (clientRef.current) {
       clientRef.current.deactivate();
       clientRef.current = null;
       isConnectedRef.current = false;
-      console.log('🔌 Disconnected from WebSocket');
     }
   }, []);
 
   const sendMessage = useCallback((messageData) => {
-    if (clientRef.current && isConnectedRef.current) {
-      console.log('📤 Sending message via WebSocket:', messageData);
-      clientRef.current.publish({
-        destination: '/app/chat.sendMessage',
-        body: JSON.stringify(messageData)
-      });
-    } else {
-      console.error('❌ WebSocket not connected, cannot send message');
+    if (clientRef.current && isConnectedRef.current && clientRef.current.connected) {
+      try {
+        clientRef.current.publish({
+          destination: '/app/chat.sendMessage',
+          body: JSON.stringify(messageData)
+        });
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   }, []);
 
@@ -142,8 +164,25 @@ export const useChatWebSocket = (conversationId, onMessageReceived) => {
     };
   }, [connect, disconnect]);
 
+  // Handle tab visibility - reconnect when tab becomes active
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Tab is active - check connection status
+        if (clientRef.current && !clientRef.current.connected) {
+          disconnect();
+          setTimeout(() => connect(), 500);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [connect, disconnect]);
+
   return {
     sendMessage,
-    disconnect
+    disconnect,
+    isConnected: isConnectedRef.current
   };
 };

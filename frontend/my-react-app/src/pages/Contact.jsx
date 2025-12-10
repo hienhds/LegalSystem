@@ -19,6 +19,13 @@ export default function Contact() {
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const pageSize = 20; // Load 20 messages at a time
 
   // Auto scroll to bottom when new message arrives
   const scrollToBottom = () => {
@@ -31,8 +38,33 @@ export default function Contact() {
   }, [messages]);
 
   // WebSocket for real-time messages
-  const handleNewMessage = useCallback((newMessage) => {
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
+  const handleNewMessage = useCallback((data) => {
+    // Check if this is a message read event
+    if (data.type === 'MESSAGE_READ' || data.eventType === 'READ') {
+      // Update all messages in this conversation to READ status
+      setMessages((prevMessages) => {
+        const updated = [...prevMessages].map(msg => {
+          if (msg.status !== 'READ') {
+            return { ...msg, status: 'READ' };
+          }
+          return msg;
+        });
+        return updated;
+      });
+      return;
+    }
+    
+    // Otherwise, it's a new message - check for duplicates
+    const newMessage = data;
+    setMessages((prevMessages) => {
+      // Check if message already exists by messageId
+      const isDuplicate = prevMessages.some(msg => msg.messageId === newMessage.messageId);
+      if (isDuplicate) {
+        return prevMessages;
+      }
+      return [...prevMessages, newMessage];
+    });
+    
     // Update conversation list with new last message
     setConversations(prevConvs => 
       prevConvs.map(conv => 
@@ -68,10 +100,94 @@ export default function Contact() {
   // Load messages when conversation is selected
   useEffect(() => {
     if (selectedConversation) {
-      loadMessages(selectedConversation.conversationId);
+      setMessages([]);
+      setCurrentPage(0);
+      setHasMoreMessages(true);
+      loadMessages(selectedConversation.conversationId, 0, false);
+      
+      // Backup polling: Check for new messages every 15 seconds
+      // This is primarily a backup for when WebSocket is disconnected
+      const pollingInterval = setInterval(() => {
+        // Only poll if tab is visible
+        if (!document.hidden) {
+          checkForNewMessages();
+        }
+      }, 15000);
+      
+      return () => clearInterval(pollingInterval);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedConversation?.conversationId]);
+
+  // Handle tab visibility change - check for new messages when tab becomes active
+  useEffect(() => {
+    let wasHidden = false;
+    
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        wasHidden = true;
+      } else if (wasHidden && selectedConversation) {
+        // Tab is active again after being hidden - check for missed messages
+        // Add slight delay to avoid race with WebSocket reconnect
+        setTimeout(() => checkForNewMessages(), 1000);
+        wasHidden = false;
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedConversation]);
+
+  // Check for new messages (lightweight polling)
+  const checkForNewMessages = async () => {
+    if (!selectedConversation || messages.length === 0) return;
+    
+    try {
+      const lastMessage = messages[messages.length - 1];
+      const response = await apiFetch(
+        `http://localhost:8080/api/chat/conversations/${selectedConversation.conversationId}/messages?page=0&size=10`
+      );
+      const data = await response.json();
+      if (data.success) {
+        const latestMessages = data.data.content || [];
+        const newMessages = latestMessages.filter(msg => 
+          msg.messageId > lastMessage.messageId
+        );
+        
+        if (newMessages.length > 0) {
+          // Deduplicate before adding
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.messageId));
+            const uniqueNew = newMessages.filter(m => !existingIds.has(m.messageId));
+            return uniqueNew.length > 0 ? [...prev, ...uniqueNew.reverse()] : prev;
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error checking new messages:", error);
+    }
+  };
+
+  // Scroll listener for infinite scroll
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      // Check if scrolled to top (within 100px)
+      if (container.scrollTop < 100 && !loadingMore && hasMoreMessages) {
+        loadMoreMessages();
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingMore, hasMoreMessages, selectedConversation]);
 
   const loadConversations = async () => {
     try {
@@ -114,23 +230,63 @@ export default function Contact() {
     }
   };
 
-  const loadMessages = async (conversationId) => {
+  const loadMessages = async (conversationId, page = 0, append = false) => {
     try {
       const response = await apiFetch(
-        `http://localhost:8080/api/chat/conversations/${conversationId}/messages?page=0&size=50`
+        `http://localhost:8080/api/chat/conversations/${conversationId}/messages?page=${page}&size=${pageSize}`
       );
       const data = await response.json();
       if (data.success) {
         const newMessages = data.data.content || [];
-        // Reverse to show oldest first
-        setMessages(newMessages.reverse());
+        const totalPages = data.data.totalPages || 0;
         
-        // Mark as read
-        markAsRead(conversationId);
+        // Check if there are more messages
+        setHasMoreMessages(page < totalPages - 1);
+        
+        if (append) {
+          // Prepend older messages (for infinite scroll) - with deduplication
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.messageId));
+            const uniqueNew = newMessages.filter(m => !existingIds.has(m.messageId));
+            return [...uniqueNew.reverse(), ...prev];
+          });
+        } else {
+          // Initial load - replace all messages (deduplicate just in case)
+          const uniqueMessages = Array.from(
+            new Map(newMessages.map(m => [m.messageId, m])).values()
+          );
+          setMessages(uniqueMessages.reverse());
+          setCurrentPage(0);
+          // Mark as read
+          markAsRead(conversationId);
+        }
       }
     } catch (error) {
       console.error("Error loading messages:", error);
     }
+  };
+
+  // Load more messages when scrolling up
+  const loadMoreMessages = async () => {
+    if (!selectedConversation || loadingMore || !hasMoreMessages) return;
+    
+    setLoadingMore(true);
+    const nextPage = currentPage + 1;
+    
+    // Save current scroll position
+    const container = messagesContainerRef.current;
+    const previousScrollHeight = container?.scrollHeight || 0;
+    
+    await loadMessages(selectedConversation.conversationId, nextPage, true);
+    
+    // Restore scroll position (prevent jump to top)
+    if (container) {
+      const newScrollHeight = container.scrollHeight;
+      container.scrollTop = newScrollHeight - previousScrollHeight;
+    }
+    
+    setCurrentPage(nextPage);
+    setLoadingMore(false);
   };
 
   const markAsRead = async (conversationId) => {
@@ -141,6 +297,23 @@ export default function Contact() {
       await apiFetch(
         `http://localhost:8080/api/chat/conversations/${conversationId}/read?userId=${actualUserId}`,
         { method: 'PUT' }
+      );
+      
+      // Update message status to READ in local state
+      setMessages(prevMessages => 
+        prevMessages.map(msg => ({
+          ...msg,
+          status: msg.senderId !== actualUserId ? msg.status : 'READ'
+        }))
+      );
+      
+      // Update conversation unread count
+      setConversations(prevConvs =>
+        prevConvs.map(conv =>
+          conv.conversationId === conversationId
+            ? { ...conv, unreadCount: 0 }
+            : conv
+        )
       );
     } catch (error) {
       console.error("Error marking as read:", error);
@@ -363,7 +536,7 @@ export default function Contact() {
                           {conv.otherUser?.fullName || conv.otherUser?.name || 'Unknown User'}
                         </p>
                         <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark flex-shrink-0">
-                          {conv.lastMessage ? new Date(conv.lastMessage.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}
+                          {conv.lastMessage?.sentAt ? new Date(conv.lastMessage.sentAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}
                         </p>
                       </div>
                       <div className="flex justify-between items-start mt-1">
@@ -399,7 +572,11 @@ export default function Contact() {
                     <h2 className="font-bold text-lg text-text-primary-light dark:text-text-primary-dark">
                       {selectedConversation.otherUser?.fullName || selectedConversation.otherUser?.name || 'Unknown User'}
                     </h2>
-                    <p className="text-sm text-green-500">Đang hoạt động</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {selectedConversation.lastMessage?.sentAt 
+                        ? `Hoạt động ${new Date(selectedConversation.lastMessage.sentAt).toLocaleDateString('vi-VN')}`
+                        : 'Chưa có hoạt động'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -414,27 +591,44 @@ export default function Contact() {
                   </button>
                 </div>
               </header>
-              <div className="flex-1 p-6 overflow-y-auto space-y-4" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+              <div ref={messagesContainerRef} className="flex-1 p-6 overflow-y-auto space-y-4" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+                {/* Loading indicator for infinite scroll */}
+                {loadingMore && (
+                  <div className="flex justify-center py-2">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  </div>
+                )}
+                
                 {messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full text-slate-500">
                     Chưa có tin nhắn nào
                   </div>
                 ) : (
-                  messages.map((msg) => {
+                  messages.map((msg, index) => {
                     const currentUserId = user?.userId || user?.lawyerId;
                     const isFromMe = msg.senderId === currentUserId;
                     const isImage = msg.messageType === 'IMAGE' || (msg.fileUrl && msg.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i));
                     const fullImageUrl = msg.fileUrl ? `http://localhost:8080${msg.fileUrl}` : null;
                     
+                    // Check if previous message is from same sender
+                    const prevMsg = index > 0 ? messages[index - 1] : null;
+                    const isSameSender = prevMsg && prevMsg.senderId === msg.senderId;
+                    const showAvatar = !isFromMe && !isSameSender;
+                    const showTime = !isSameSender;
+                    
                     return (
-                      <div key={msg.messageId} className={`flex items-start gap-3 ${isFromMe ? 'justify-end' : ''} group relative`}>
+                      <div key={msg.messageId} className={`flex items-start gap-2 ${isFromMe ? 'justify-end' : ''} group relative ${isSameSender ? 'mt-1' : 'mt-3'}`}>
                         {!isFromMe && (
-                          <img 
-                            alt={selectedConversation.otherUser?.fullName || selectedConversation.otherUser?.name || 'User'} 
-                            className="w-8 h-8 rounded-full flex-shrink-0 bg-gray-200" 
-                            src={selectedConversation.otherUser?.avatarUrl ? `http://localhost:8080${selectedConversation.otherUser.avatarUrl}` : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="150" height="150"%3E%3Crect fill="%23ddd" width="150" height="150"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="48"%3E?%3C/text%3E%3C/svg%3E'} 
-                            onError={(e) => { e.target.style.display = 'none'; }}
-                          />
+                          showAvatar ? (
+                            <img 
+                              alt={selectedConversation.otherUser?.fullName || selectedConversation.otherUser?.name || 'User'} 
+                              className="w-8 h-8 rounded-full flex-shrink-0 bg-gray-200" 
+                              src={selectedConversation.otherUser?.avatarUrl ? `http://localhost:8080${selectedConversation.otherUser.avatarUrl}` : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="150" height="150"%3E%3Crect fill="%23ddd" width="150" height="150"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="48"%3E?%3C/text%3E%3C/svg%3E'} 
+                              onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                          ) : (
+                            <div className="w-8 h-8 flex-shrink-0"></div>
+                          )
                         )}
                         
                         {/* Three-dot menu button - outside message container */}
@@ -450,9 +644,9 @@ export default function Contact() {
                           {/* Message content */}
                           <div className={`${
                             isFromMe 
-                              ? 'bg-primary text-white rounded-xl rounded-tr-sm' 
-                              : 'bg-surface-light dark:bg-surface-dark rounded-xl rounded-tl-sm'
-                          } ${isImage && !msg.content ? 'p-1' : 'p-3'} max-w-md relative`}>
+                              ? 'bg-[#0068FF] text-white rounded-2xl rounded-tr-md' 
+                              : 'bg-[#E5E5EA] dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl rounded-tl-md'
+                          } ${isImage && !msg.content ? 'p-1' : 'px-4 py-2'} max-w-md relative`}>
                             {msg.content && <p className="break-words">{msg.content}</p>}
                             
                             {/* Display image directly if it's an image */}
@@ -480,18 +674,30 @@ export default function Contact() {
                             
                             {/* Display file info if it's not an image */}
                             {msg.fileUrl && !isImage && (
-                              <div className="mt-2 flex items-center gap-3 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark">
-                                <span className="material-symbols-outlined text-red-500">description</span>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm truncate">{msg.fileName || 'File'}</p>
-                                  <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Tải xuống</p>
+                              <div className="mt-2 flex items-center gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 min-w-[280px]">
+                                {/* PDF Icon */}
+                                <div className="flex-shrink-0 w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                                  PDF
                                 </div>
+                                
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-sm truncate text-gray-900 dark:text-gray-100">
+                                    {msg.fileName || 'Document.pdf'}
+                                  </p>
+                                  {msg.fileSize && (
+                                    <span className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 block">
+                                      {(msg.fileSize / 1024).toFixed(2)} KB
+                                    </span>
+                                  )}
+                                </div>
+                                
                                 <a 
                                   href={fullImageUrl} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   download
-                                  className="p-2 rounded-full hover:bg-hover-light dark:hover:bg-hover-dark text-text-secondary-light dark:text-text-secondary-dark transition-colors"
+                                  className="flex-shrink-0 p-2 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800 text-blue-600 dark:text-blue-400 transition-colors"
+                                  title="Tải xuống"
                                 >
                                   <span className="material-symbols-outlined" style={{ fontSize: 20 }}>download</span>
                                 </a>
@@ -499,15 +705,22 @@ export default function Contact() {
                             )}
                           </div>
                           
-                          {/* Time and status */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
-                              {new Date(msg.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                            {isFromMe && msg.status === "READ" && (
-                              <span className="material-symbols-outlined text-primary" style={{ fontSize: 16 }}>done_all</span>
-                            )}
-                          </div>
+                          {/* Time and status - only show if not same sender or last in group */}
+                          {showTime && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                                {msg.sentAt 
+                                  ? new Date(msg.sentAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+                                  : '--:--'
+                                }
+                              </span>
+                              {isFromMe && (
+                                <span className="text-xs" style={{ color: msg.status === "READ" ? '#0068FF' : '#9ca3af' }}>
+                                  {msg.status === "READ" ? "Đã xem" : "Đã gửi"}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                         
                         {/* Dropdown menu - outside message column */}
