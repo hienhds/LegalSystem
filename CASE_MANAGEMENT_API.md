@@ -1,33 +1,29 @@
-# 📂 **CASE MANAGEMENT API DOCUMENTATION**
-**(Module Quản lý Vụ án - Phụ trách: Hoàng)**
+📂 CASE MANAGEMENT API DOCUMENTATION
 
----
+(Module Quản lý Vụ án – Phụ trách: Hoàng)
 
-## 🔗 **Base Configuration**
-- **Base URL**: `/api/cases`
-- **Authentication**: Yêu cầu Header `Authorization: Bearer {jwt_token}` cho tất cả các request.
+🔗 Base Configuration
 
----
+Base URL: /api/cases
 
-## 1. 📝 **Tạo Vụ Án Mới**
+Authentication: Yêu cầu Header
+Authorization: Bearer {jwt_token} cho tất cả các request.
+
+1. 📝 Tạo Vụ Án Mới
 
 Người dùng (Citizen) tạo hồ sơ vụ án mới để nhờ luật sư tư vấn hoặc theo dõi.
 
-### **POST** `/api/cases`
-
-**Request Body:**
-```json
+POST /api/cases
+Request Body
 {
   "title": "Tranh chấp đất đai tại xã A",
   "description": "Nội dung chi tiết vụ việc: Hàng xóm lấn chiếm 2m đất...",
   "serviceType": "CONSULTATION",
-  "lawyerId": 5,                   // ID luật sư muốn thuê (nếu có)
-  "budget": 5000000                // Ngân sách dự kiến (nếu có)
+  "lawyerId": 5,
+  "budget": 5000000
 }
-Response (201 Created):
 
-JSON
-
+Response (201 Created)
 {
   "success": true,
   "message": "Tạo vụ án thành công",
@@ -38,18 +34,18 @@ JSON
     "createdAt": "2025-12-10T08:00:00Z"
   }
 }
+
 2. 🔍 Lấy Chi Tiết Vụ Án
-Xem thông tin đầy đủ của một vụ án cụ thể, bao gồm cả tiến độ và tài liệu đính kèm.
+
+Xem thông tin đầy đủ của vụ án, bao gồm mô tả, luật sư, tài liệu và tiến độ.
 
 GET /api/cases/{id}
-Parameters:
 
-id (path): ID của vụ án (Ví dụ: 101)
+Path Parameters:
 
-Response (200 OK):
+id: ID vụ án (Ví dụ: 101)
 
-JSON
-
+Response (200 OK)
 {
   "success": true,
   "message": "Lấy thông tin vụ án thành công",
@@ -75,23 +71,20 @@ JSON
     ]
   }
 }
+
 3. 📈 Cập Nhật Tiến Độ Vụ Án
-Cập nhật trạng thái hoặc các mốc quan trọng mới của vụ án.
+
+Luật sư hoặc người xử lý cập nhật các mốc tiến độ mới cho vụ án.
 
 POST /api/cases/{id}/updates
-Request Body:
-
-JSON
-
+Request Body
 {
   "content": "Đã hoàn tất nộp án phí sơ thẩm",
   "stage": "PREPARING_TRIAL",
   "note": "Khách hàng cần giữ lại biên lai"
 }
-Response (200 OK):
 
-JSON
-
+Response (200 OK)
 {
   "success": true,
   "message": "Cập nhật tiến độ thành công",
@@ -102,22 +95,21 @@ JSON
     "updatedAt": "2025-12-12T10:30:00Z"
   }
 }
+
 4. 📎 Upload Tài Liệu Vụ Án
-Tải lên các file bằng chứng, giấy tờ liên quan vào hồ sơ vụ án.
+
+Tải lên file bằng chứng, giấy tờ liên quan đến hồ sơ vụ án.
 
 POST /api/cases/{id}/documents
-Headers:
+Headers
 
 Content-Type: multipart/form-data
 
-Form Data:
+Form Data
 
-file: (File object - .pdf, .jpg, .png, .docx)
+file: File PDF / JPG / PNG / DOCX
 
-Response (200 OK):
-
-JSON
-
+Response (200 OK)
 {
   "success": true,
   "message": "Upload tài liệu thành công",
