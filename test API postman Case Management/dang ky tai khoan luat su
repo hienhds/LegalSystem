@@ -1,0 +1,18 @@
+⚖️ BƯỚC 2: TẠO TÀI KHOẢN LUẬT SƯ (Quan trọng nhất)
+User thường không thể nhận vụ án, phải nâng cấp lên Lawyer.
+
+1. Đăng ký user cho "Luật sư"
+Method: POST
+
+URL: http://localhost:8080/api/auth/register
+
+Body:
+
+JSON
+
+{
+    "email": "lawyer@test.com",
+    "password": "123",
+    "fullName": "Luật Sư Hùng",
+    "phoneNumber": "0902000002"
+}

@@ -1,0 +1,22 @@
+2. Đăng nhập "Dân" để lấy Token
+Method: POST
+
+URL: http://localhost:8080/api/auth/login
+
+Body (raw -> JSON):
+
+JSON
+
+{
+    "email": "client@test.com",
+    "password": "123"
+}
+Kết quả: Copy đoạn token (accessToken) trả về.
+
+⚠️ Lưu ý: Ghi nhớ cái userId của ông này (Ví dụ: 1).
+
+{
+    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjbGllbnRAdGVzdC5jb20iLCJpYXQiOjE3NjUzNzQ1MjQsImV4cCI6MTc2NTM3ODEyNH0.SSK79VwG7NxorxupZrJ48DV7cWKqi_jpYxEAbKn2w1U",
+    "refreshToken": "8af31392-5d16-4155-8d7d-7e3fdbe1cad8",
+    "expiresIn": 3600000
+}

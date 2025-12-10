@@ -1,0 +1,36 @@
+1. Đăng ký tài khoản cho "Dân" (Client)
+Method: POST
+
+URL: http://localhost:8080/api/auth/register (hoặc /signup tùy route bạn cấu hình)
+
+Body (raw -> JSON):
+
+JSON
+
+{
+    "email": "client@test.com",
+    "password": "123",
+    "fullName": "Nguyễn Văn Dân",
+    "phoneNumber": "0901000001"
+}
+Send: Bạn sẽ thấy thành công. Do bạn đã sửa code setActive(true) nên tài khoản này dùng được luôn.
+
+{
+    "success": true,
+    "status": 201,
+    "message": "Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản.",
+    "errorCode": null,
+    "data": {
+        "userId": 10,
+        "email": "client@test.com",
+        "fullName": "Nguyễn Văn Dân"
+    },
+    "errors": null,
+    "path": "/api/auth/register",
+    "timestamp": "2025-12-10T13:44:43.593533600Z",
+    "traceId": "e2665ff7-f364-4c34-93a7-0dc16f8a4265",
+    "links": {
+        "self": "http://localhost:8080/api/auth/register",
+        "verify": "/api/auth/verify?token={token}"
+    }
+}

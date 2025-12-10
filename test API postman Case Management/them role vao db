@@ -1,0 +1,9 @@
+
+INSERT INTO roles (role_name, description) VALUES ('USER', 'Người dân/Khách hàng');
+INSERT INTO roles (role_name, description) VALUES ('LAWYER', 'Luật sư');
+INSERT INTO roles (role_name, description) VALUES ('ADMIN', 'Quản trị viên');
+
+fix bug 
+Caused by: org.hibernate.exception.GenericJDBCException: could not execute statement [Field 'user_role_id' doesn't have a default value] [insert into user_roles (assigned_at,role_id,user_id) values (?,?,?)]
+
+ALTER TABLE user_roles MODIFY COLUMN user_role_id BIGINT NOT NULL AUTO_INCREMENT;

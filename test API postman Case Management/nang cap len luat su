@@ -1,0 +1,22 @@
+3. Nâng cấp User này thành Luật sư (API LawyerController)
+Vì DB rỗng, chưa có dữ liệu luật sư nào, bạn phải tạo hồ sơ.
+
+Method: POST
+
+URL: http://localhost:8080/api/lawyers
+
+Auth: Chọn Bearer Token -> Dán Token_Lawyer vào.
+
+Body: Chọn form-data (Không phải JSON nhé):
+
+Key: certificate | Type: File | Value: (Chọn 1 ảnh bất kỳ từ máy tính).
+
+Key: data | Type: Text | Value:
+
+JSON
+
+{
+    "officeName": "Văn phòng Luật Sư Test",
+    "specializationId": 1
+}
+(Lưu ý: Nếu bảng specializations trong DB cũng rỗng, bạn có thể phải insert tay 1 dòng vào DB trước, hoặc xóa dòng specializationId trong JSON trên nếu code cho phép null).

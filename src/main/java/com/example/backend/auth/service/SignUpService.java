@@ -39,10 +39,10 @@ public class SignUpService {
             }
 
             // --- ĐOẠN SỬA 1: Tắt gửi lại email xác thực để tránh lỗi ---
-            /*
-            UserToken newToken = tokenService.createVerificationToken(existing);
-            emailService.sendVerificationEmail(existing.getEmail(), newToken.getTokenHash());
-            */
+
+//            UserToken newToken = tokenService.createVerificationToken(existing);
+//            emailService.sendVerificationEmail(existing.getEmail(), newToken.getTokenHash());
+//
             log.info("Resent verification email to {}", existing.getEmail());
             throw new AppException(ErrorType.CONFLICT, "Tài khoản chưa được kích hoạt. (Đã tắt gửi lại email)");
         });

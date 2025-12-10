@@ -1,0 +1,24 @@
+-- 1. Tắt kiểm tra khóa ngoại (để xóa được dù đang có liên kết)
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 2. Làm sạch bảng (Xóa hết dữ liệu cũ + Reset ID về 1)
+TRUNCATE TABLE bar_associations;
+TRUNCATE TABLE specializations;
+
+-- 3. Bật lại kiểm tra khóa ngoại
+SET FOREIGN_KEY_CHECKS = 1;
+-- Chèn lại dữ liệu Đoàn Luật sư
+INSERT INTO bar_associations (association_name, address, contact_email, phone_number) 
+VALUES 
+('Đoàn Luật sư TP. Hà Nội', 'Tầng 1, Cung Trí Thức, Cầu Giấy, Hà Nội', 'lienhe@hanoibar.vn', '02437624707'),
+('Đoàn Luật sư TP. Hồ Chí Minh', '104 Nguyễn Đình Chiểu, Q.1, TP.HCM', 'hcmcbar@hcmcbar.org', '02838222627');
+
+-- Chèn lại dữ liệu Chuyên môn
+INSERT INTO specializations (spec_name) 
+VALUES 
+('Hình sự'),
+('Dân sự'),
+('Đất đai - Nhà ở'),
+('Hôn nhân gia đình'),
+('Kinh doanh thương mại'),
+('Sở hữu trí tuệ');
