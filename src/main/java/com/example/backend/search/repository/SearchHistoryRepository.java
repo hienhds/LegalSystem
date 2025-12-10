@@ -310,24 +310,26 @@ public interface SearchHistoryRepository extends JpaRepository<SearchHistory, Lo
     /**
      * Find popular keywords with limit
      */
-    @Query("SELECT sh.searchQuery, COUNT(sh) as searchCount " +
-           "FROM SearchHistory sh " +
-           "WHERE sh.searchQuery IS NOT NULL " +
-           "AND sh.searchQuery <> '' " +
-           "GROUP BY sh.searchQuery " +
-           "ORDER BY searchCount DESC")
+    @Query(value = "SELECT sh.search_query, COUNT(*) as searchCount " +
+           "FROM search_histories sh " +
+           "WHERE sh.search_query IS NOT NULL " +
+           "AND sh.search_query <> '' " +
+           "GROUP BY sh.search_query " +
+           "ORDER BY searchCount DESC " +
+           "LIMIT :limit", nativeQuery = true)
     List<Object[]> findPopularKeywords(@Param("limit") Integer limit);
     
     /**
      * Find popular keywords since date with limit
      */
-    @Query("SELECT sh.searchQuery, COUNT(sh) as searchCount " +
-           "FROM SearchHistory sh " +
-           "WHERE sh.searchQuery IS NOT NULL " +
-           "AND sh.searchQuery <> '' " +
-           "AND sh.searchTimestamp >= :since " +
-           "GROUP BY sh.searchQuery " +
-           "ORDER BY searchCount DESC")
+    @Query(value = "SELECT sh.search_query, COUNT(*) as searchCount " +
+           "FROM search_histories sh " +
+           "WHERE sh.search_query IS NOT NULL " +
+           "AND sh.search_query <> '' " +
+           "AND sh.search_timestamp >= :since " +
+           "GROUP BY sh.search_query " +
+           "ORDER BY searchCount DESC " +
+           "LIMIT :limit", nativeQuery = true)
     List<Object[]> findPopularKeywordsSince(@Param("since") LocalDateTime since, @Param("limit") Integer limit);
     
     /**
@@ -364,25 +366,27 @@ public interface SearchHistoryRepository extends JpaRepository<SearchHistory, Lo
     /**
      * Find user popular keywords
      */
-    @Query("SELECT sh.searchQuery, COUNT(sh) as searchCount " +
-           "FROM SearchHistory sh " +
-           "WHERE sh.user.userId = :userId " +
-           "AND sh.searchQuery IS NOT NULL " +
-           "AND sh.searchQuery <> '' " +
-           "GROUP BY sh.searchQuery " +
-           "ORDER BY searchCount DESC")
+    @Query(value = "SELECT sh.search_query, COUNT(*) as searchCount " +
+           "FROM search_histories sh " +
+           "WHERE sh.user_id = :userId " +
+           "AND sh.search_query IS NOT NULL " +
+           "AND sh.search_query <> '' " +
+           "GROUP BY sh.search_query " +
+           "ORDER BY searchCount DESC " +
+           "LIMIT :limit", nativeQuery = true)
     List<Object[]> findUserPopularKeywords(@Param("userId") Long userId, @Param("limit") Integer limit);
     
     /**
      * Find keyword suggestions for user
      */
-    @Query("SELECT DISTINCT sh.searchQuery " +
-           "FROM SearchHistory sh " +
-           "WHERE sh.user.userId = :userId " +
-           "AND LOWER(sh.searchQuery) LIKE LOWER(CONCAT('%', :partialKeyword, '%')) " +
-           "AND sh.searchQuery IS NOT NULL " +
-           "AND sh.searchQuery <> '' " +
-           "ORDER BY sh.searchQuery ASC")
+    @Query(value = "SELECT DISTINCT sh.search_query " +
+           "FROM search_histories sh " +
+           "WHERE sh.user_id = :userId " +
+           "AND LOWER(sh.search_query) LIKE LOWER(CONCAT('%', :partialKeyword, '%')) " +
+           "AND sh.search_query IS NOT NULL " +
+           "AND sh.search_query <> '' " +
+           "ORDER BY sh.search_query ASC " +
+           "LIMIT :limit", nativeQuery = true)
     List<String> findKeywordSuggestions(@Param("userId") Long userId, 
                                        @Param("partialKeyword") String partialKeyword, 
                                        @Param("limit") Integer limit);

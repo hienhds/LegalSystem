@@ -11,10 +11,18 @@ import com.example.backend.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -97,6 +105,58 @@ public class ChatController {
             response,
             "Gửi tin nhắn thành công"
         ));
+    }
+
+    /**
+     * Send message with file upload
+     */
+    @PostMapping("/messages/upload")
+    public ResponseEntity<ApiResponse<MessageResponse>> sendMessageWithFile(
+            @RequestParam Long conversationId,
+            @RequestParam Long senderId,
+            @RequestParam String senderType,
+            @RequestParam(required = false) String content,
+            @RequestParam String messageType,
+            @RequestParam("file") MultipartFile file) {
+        log.info("Sending message with file upload");
+        
+        try {
+            // Upload file first
+            String uploadDir = "uploads/chat/";
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            
+            String originalFilename = file.getOriginalFilename();
+            String filename = System.currentTimeMillis() + "_" + originalFilename;
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            
+            String fileUrl = "/" + uploadDir + filename;
+            
+            // Create message request with file info
+            MessageRequest request = new MessageRequest();
+            request.setConversationId(conversationId);
+            request.setSenderId(senderId);
+            request.setSenderType(senderType);
+            request.setContent(content != null ? content : "Đã gửi file");
+            request.setMessageType(messageType);
+            request.setFileUrl(fileUrl);
+            request.setFileName(originalFilename);
+            request.setFileSize(file.getSize());
+            
+            MessageResponse response = messageService.sendMessage(request);
+            
+            return ResponseEntity.ok(ApiResponse.success(
+                response,
+                "Gửi file thành công"
+            ));
+        } catch (IOException e) {
+            log.error("Error uploading file", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Lỗi upload file"));
+        }
     }
 
     /**
