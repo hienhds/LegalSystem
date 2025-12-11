@@ -1,18 +1,42 @@
-⚖️ BƯỚC 2: TẠO TÀI KHOẢN LUẬT SƯ (Quan trọng nhất)
-User thường không thể nhận vụ án, phải nâng cấp lên Lawyer.
+✅ 1. Đăng ký tài khoản LUẬT SƯ (tạo user có role LAWYER)
 
-1. Đăng ký user cho "Luật sư"
-Method: POST
+POST
 
-URL: http://localhost:8080/api/auth/register
+http://localhost:8080/api/auth/register
 
-Body:
 
-JSON
+Headers:
+
+Content-Type: application/json
+
+
+Body JSON (ví dụ luật sư mới đăng ký luôn):
 
 {
-    "email": "lawyer@test.com",
-    "password": "123",
-    "fullName": "Luật Sư Hùng",
-    "phoneNumber": "0902000002"
+  "fullName": "Luật sư Nguyễn Văn B",
+  "email": "lawyer111@example.com",
+  "phoneNumber": "03439493743",
+  "password": "123456",
+  "role": "LAWYER"
+}
+
+trả về 
+{
+    "success": true,
+    "status": 201,
+    "message": "Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản.",
+    "errorCode": null,
+    "data": {
+        "userId": 13,
+        "email": "lawyer111@example.com",
+        "fullName": "Luật sư Nguyễn Văn B"
+    },
+    "errors": null,
+    "path": "/api/auth/register",
+    "timestamp": "2025-12-11T02:08:39.029783900Z",
+    "traceId": "c743e158-1cd3-4a0f-8195-d5e5e0f0353e",
+    "links": {
+        "self": "http://localhost:8080/api/auth/register",
+        "verify": "/api/auth/verify?token={token}"
+    }
 }

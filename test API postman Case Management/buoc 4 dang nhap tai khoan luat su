@@ -1,19 +1,27 @@
-2. Đăng nhập "Luật sư" lấy Token
-Method: POST
+✅ 1. Đăng nhập LUẬT SƯ (lấy token)
+🔹 Request login
 
-URL: http://localhost:8080/api/auth/login
-json
+POST
+
+http://localhost:8080/api/auth/login
+
+
+Headers:
+
+Content-Type: application/json
+
+
+Body JSON (ví dụ):
+
 {
-    "email": "lawyer@test.com",
-    "password": "123"
+  "email": "lawyer111@example.com",
+  "password": "123456"
 }
 
-Kết quả: Copy token mới này (đặt tên là Token_Lawyer).
 
-⚠️ Lưu ý: Ghi nhớ userId của ông này (Ví dụ: 2).
-
+Bấm Send, backend sẽ trả về kiểu như:
 {
-    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsYXd5ZXJAdGVzdC5jb20iLCJpYXQiOjE3NjUzNzQ3MzUsImV4cCI6MTc2NTM3ODMzNX0.7KYR25IjqMAVsyw-tMN5J69xo9JVape4JNrOCt7drz8",
-    "refreshToken": "56f94fd3-1f23-4494-acd6-ce62425d740b",
+    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsYXd5ZXIxMTFAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU0MTkwNTcsImV4cCI6MTc2NTQyMjY1N30.6nJxSKG5uiVfttmTbbJOssoxNZadg1gCqZLy_Uu9GoU",
+    "refreshToken": "cae46cdd-b337-4544-a499-aca3a3ba728a",
     "expiresIn": 3600000
 }

@@ -1,34 +1,34 @@
-1. Đăng ký tài khoản cho "Dân" (Client)
-Method: POST
+👉 Register (Đăng ký user mới)
 
-URL: http://localhost:8080/api/auth/register (hoặc /signup tùy route bạn cấu hình)
+POST
 
-Body (raw -> JSON):
+http://localhost:8080/api/auth/register
 
-JSON
+
+Body JSON (ví dụ):
 
 {
-    "email": "client@test.com",
-    "password": "123",
-    "fullName": "Nguyễn Văn Dân",
-    "phoneNumber": "0901000001"
+  "fullName": "Nguyen Van A",
+  "email": "user1@example.com",
+  "password": "123456",
+  "role": "CITIZEN"
 }
-Send: Bạn sẽ thấy thành công. Do bạn đã sửa code setActive(true) nên tài khoản này dùng được luôn.
 
+trả về 
 {
     "success": true,
     "status": 201,
     "message": "Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản.",
     "errorCode": null,
     "data": {
-        "userId": 10,
-        "email": "client@test.com",
-        "fullName": "Nguyễn Văn Dân"
+        "userId": 12,
+        "email": "user1@example.com",
+        "fullName": "Nguyen Van A"
     },
     "errors": null,
     "path": "/api/auth/register",
-    "timestamp": "2025-12-10T13:44:43.593533600Z",
-    "traceId": "e2665ff7-f364-4c34-93a7-0dc16f8a4265",
+    "timestamp": "2025-12-11T01:47:48.400348300Z",
+    "traceId": "0d1034fb-d0cc-4584-a53a-2e567866cb3e",
     "links": {
         "self": "http://localhost:8080/api/auth/register",
         "verify": "/api/auth/verify?token={token}"

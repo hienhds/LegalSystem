@@ -1,22 +1,16 @@
-3. Nâng cấp User này thành Luật sư (API LawyerController)
-Vì DB rỗng, chưa có dữ liệu luật sư nào, bạn phải tạo hồ sơ.
+✅ 2. Nâng cấp luật sư / gửi hồ sơ luật sư
 
-Method: POST
+Flow chuẩn là:
 
-URL: http://localhost:8080/api/lawyers
+Bạn đã có tài khoản (dù role CITIZEN hay LAWYER đều được, miễn là user đã login).
 
-Auth: Chọn Bearer Token -> Dán Token_Lawyer vào.
+Bạn login → có token.
 
-Body: Chọn form-data (Không phải JSON nhé):
+Dùng token đó gọi POST /api/lawyers để gửi hồ sơ + chứng chỉ.
 
-Key: certificate | Type: File | Value: (Chọn 1 ảnh bất kỳ từ máy tính).
+🔹 URL & Headers
 
-Key: data | Type: Text | Value:
+POST
 
-JSON
+http://localhost:8080/api/lawyers
 
-{
-    "officeName": "Văn phòng Luật Sư Test",
-    "specializationId": 1
-}
-(Lưu ý: Nếu bảng specializations trong DB cũng rỗng, bạn có thể phải insert tay 1 dòng vào DB trước, hoặc xóa dòng specializationId trong JSON trên nếu code cho phép null).
