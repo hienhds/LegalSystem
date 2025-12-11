@@ -1,0 +1,45 @@
+2. Cấu hình Request trong Postman:
+
+Method: POST
+
+URL: http://localhost:8080/api/cases
+
+Headers:
+
+Content-Type: application/json
+
+Authorization: Bearer {token_cua_nguoi_dan}
+
+Body (JSON):
+
+JSON
+
+{
+  "title": "Tranh chấp hợp đồng lao động công ty X",
+  "description": "Công ty đơn phương chấm dứt hợp đồng trái luật, tôi muốn khởi kiện đòi bồi thường.",
+  "lawyerId": 13
+}
+(Số 13 là ID của luật sư bạn vừa verify thành công).
+
+{
+    "success": true,
+    "status": 0,
+    "message": "Tạo vụ án thành công",
+    "errorCode": null,
+    "data": {
+        "caseId": 1,
+        "title": "Tranh chấp hợp đồng lao động công ty X",
+        "description": "Công ty đơn phương chấm dứt hợp đồng trái luật, tôi muốn khởi kiện đòi bồi thường.",
+        "clientName": "Nguyen Van A",
+        "lawyerName": "Luật sư Nguyễn Văn B",
+        "status": "IN_PROGRESS",
+        "createdAt": "2025-12-11T10:40:59.489328",
+        "updates": [],
+        "documents": []
+    },
+    "errors": null,
+    "path": "/api/cases",
+    "timestamp": "2025-12-11T03:40:59.513689100Z",
+    "traceId": null,
+    "links": null
+}

@@ -1,0 +1,37 @@
+2. Gọi API Phê duyệt (Verify Lawyer)
+Dùng token Admin vừa lấy được để duyệt hồ sơ nâng cấp cho user (ID 13) mà bạn đã tạo ở bước trước.
+
+Method: PUT
+
+URL: http://localhost:8080/api/admin/lawyers/13/verify (Thay 13 bằng lawyerId bạn nhận được ở Bước 7 nếu khác)
+
+Headers:
+
+Authorization: Bearer {token_admin_vua_lay}
+
+Body: Không cần body (hoặc để trống).
+
+Kết quả mong đợi: Server sẽ trả về thông báo thành công, ví dụ:
+
+JSON
+
+{
+    "success": true,
+    "status": 200,
+    "message": "Xác minh luật sư thành công",
+    "data": "Status updated to APPROVED"
+
+}
+
+{
+    "success": true,
+    "status": 200,
+    "message": "Xác minh luật sư thành công",
+    "errorCode": null,
+    "data": "Status updated to APPROVED",
+    "errors": null,
+    "path": "/api/admin/lawyers/13/verify",
+    "timestamp": "2025-12-11T03:38:10.297292300Z",
+    "traceId": "b8514ec1-3e47-4892-886d-d7c158abf0c8",
+    "links": null
+}

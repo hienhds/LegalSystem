@@ -1,0 +1,43 @@
+Luật sư cập nhật tiến độ (Update Progress)
+Bây giờ, bạn sẽ đóng vai Luật sư để cập nhật tình hình xử lý vụ án (ví dụ: đã nộp đơn, đang chờ tòa, v.v.).
+
+⚠️ Lưu ý quan trọng: Bạn phải dùng Token của Luật sư (lấy từ bước 4). Nếu dùng token của người dân, API sẽ báo lỗi 403 Forbidden vì chỉ luật sư phụ trách mới có quyền cập nhật.
+
+Chuyển Token: Vào tab Authorization của Postman, thay token cũ bằng Token Luật sư.
+
+Cấu hình Request:
+
+Method: POST
+
+URL: http://localhost:8080/api/cases/{caseId}/updates (Thay {caseId} bằng ID vụ án).
+
+Body (JSON):
+
+JSON
+
+{
+  "title": "Đã tiếp nhận và soạn thảo đơn",
+  "description": "Luật sư đã nghiên cứu hồ sơ và hoàn tất soạn thảo đơn khởi kiện. Dự kiến nộp tòa vào ngày 15/12.",
+  "status": "IN_PROGRESS"
+}
+(Trường status là tùy chọn, nếu muốn đổi trạng thái vụ án thì thêm vào).
+
+Kết quả mong đợi (200 OK):
+{
+    "success": true,
+    "status": 0,
+    "message": "Cập nhật tiến độ thành công",
+    "errorCode": null,
+    "data": {
+        "updateId": null,
+        "title": "Đã tiếp nhận và soạn thảo đơn",
+        "description": "Luật sư đã nghiên cứu hồ sơ và hoàn tất soạn thảo đơn khởi kiện. Dự kiến nộp tòa vào ngày 15/12.",
+        "createdByName": "Luật sư Nguyễn Văn B",
+        "createdAt": null
+    },
+    "errors": null,
+    "path": "/api/cases/1/updates",
+    "timestamp": "2025-12-11T03:45:27.607217300Z",
+    "traceId": null,
+    "links": null
+}
