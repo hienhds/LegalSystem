@@ -16,6 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page; // Nhớ import Page
+import org.springframework.data.domain.PageRequest; // Nhớ import PageRequest
+import org.springframework.data.domain.Pageable; // Nhớ import Pageable
 
 import java.time.Instant;
 import java.util.UUID;
@@ -110,12 +113,12 @@ public class CaseController {
 
         return ResponseEntity.ok(response);
     }
-    // 5. LẤY DANH SÁCH VỤ ÁN (CỦA TÔI)
+    // 5. LẤY DANH SÁCH VỤ ÁN CỦA TÔI (API này đang thiếu)
     @GetMapping
     public ResponseEntity<ApiResponse<Page<CaseResponse>>> getMyCases(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest request
     ) {
         Long userId = userDetails.getUser().getUserId();

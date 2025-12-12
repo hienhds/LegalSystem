@@ -125,16 +125,18 @@ public class CaseService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "User not found"));
 
-        // Kiểm tra role để gọi repository tương ứng
-        // (Giả sử bạn có logic check role trong User hoặc lấy từ userDetails)
-        // Ở đây mình check đơn giản: Nếu user có lawyer profile thì tìm theo lawyer, ngược lại tìm theo client
-        
+        // Lấy role của user để quyết định tìm kiếm kiểu gì
+        // Logic: Nếu user có role LAWYER -> Tìm theo lawyer_id
+        //        Ngược lại -> Tìm theo client_id
+        boolean isLawyer = user.getUserRoles().stream()
+                .anyMatch(ur -> "LAWYER".equals(ur.getRole().getRoleName()));
+
         Page<Case> cases;
-        if (user.getLawyer() != null) {
-            // Là luật sư -> Tìm các vụ án mình phụ trách
+        if (isLawyer) {
+            // Là Luật sư: Tìm những vụ án được phân công cho mình
             cases = caseRepository.findByLawyer(user, pageable);
         } else {
-            // Là người dân -> Tìm các vụ án mình tạo
+            // Là Người dân: Tìm những vụ án mình là khách hàng
             cases = caseRepository.findByClient(user, pageable);
         }
 
