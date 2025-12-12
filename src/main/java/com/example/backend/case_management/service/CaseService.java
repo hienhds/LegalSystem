@@ -18,7 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -119,5 +120,24 @@ public class CaseService {
         caseRepository.save(c);
 
         return fileUrl;
+    }
+    public Page<CaseResponse> getMyCases(Long userId, Pageable pageable) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "User not found"));
+
+        // Kiểm tra role để gọi repository tương ứng
+        // (Giả sử bạn có logic check role trong User hoặc lấy từ userDetails)
+        // Ở đây mình check đơn giản: Nếu user có lawyer profile thì tìm theo lawyer, ngược lại tìm theo client
+        
+        Page<Case> cases;
+        if (user.getLawyer() != null) {
+            // Là luật sư -> Tìm các vụ án mình phụ trách
+            cases = caseRepository.findByLawyer(user, pageable);
+        } else {
+            // Là người dân -> Tìm các vụ án mình tạo
+            cases = caseRepository.findByClient(user, pageable);
+        }
+
+        return cases.map(CaseResponse::from);
     }
 }

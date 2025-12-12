@@ -10,6 +10,7 @@ import com.example.backend.common.security.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -104,6 +105,29 @@ public class CaseController {
                 .message("Upload tài liệu thành công")
                 .data(url)
                 .path(servletRequest.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+    // 5. LẤY DANH SÁCH VỤ ÁN (CỦA TÔI)
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<CaseResponse>>> getMyCases(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request
+    ) {
+        Long userId = userDetails.getUser().getUserId();
+        Pageable pageable = PageRequest.of(page, size);
+        
+        Page<CaseResponse> cases = caseService.getMyCases(userId, pageable);
+
+        ApiResponse<Page<CaseResponse>> response = ApiResponse.<Page<CaseResponse>>builder()
+                .success(true)
+                .message("Lấy danh sách vụ án thành công")
+                .data(cases)
+                .path(request.getRequestURI())
                 .timestamp(Instant.now())
                 .build();
 
