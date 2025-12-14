@@ -122,23 +122,16 @@ public class CaseService {
         return fileUrl;
     }
     public Page<CaseResponse> getMyCases(Long userId, Pageable pageable) {
-        User user = userRepository.findById(userId)
+        // Log ID ra console để kiểm tra
+        System.out.println(">>> Đang tìm vụ án cho User ID: " + userId); 
+
+        userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "User not found"));
 
-        // Lấy role của user để quyết định tìm kiếm kiểu gì
-        // Logic: Nếu user có role LAWYER -> Tìm theo lawyer_id
-        //        Ngược lại -> Tìm theo client_id
-        boolean isLawyer = user.getUserRoles().stream()
-                .anyMatch(ur -> "LAWYER".equals(ur.getRole().getRoleName()));
-
-        Page<Case> cases;
-        if (isLawyer) {
-            // Là Luật sư: Tìm những vụ án được phân công cho mình
-            cases = caseRepository.findByLawyer(user, pageable);
-        } else {
-            // Là Người dân: Tìm những vụ án mình là khách hàng
-            cases = caseRepository.findByClient(user, pageable);
-        }
+        // Gọi hàm repository mới
+        Page<Case> cases = caseRepository.findAllCasesByUserId(userId, pageable);
+        
+        System.out.println(">>> Tìm thấy: " + cases.getTotalElements() + " vụ án.");
 
         return cases.map(CaseResponse::from);
     }

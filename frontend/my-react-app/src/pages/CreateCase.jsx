@@ -21,7 +21,7 @@ export default function CreateCase() {
   // State cho tìm kiếm luật sư
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [selectedLawyer, setSelectedLawyer] = useState(null); // Lưu thông tin hiển thị (tên, ảnh)
+  const [selectedLawyer, setSelectedLawyer] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   
   // State xử lý loading/error
@@ -29,7 +29,7 @@ export default function CreateCase() {
   const [searching, setSearching] = useState(false);
   const searchTimeoutRef = useRef(null);
 
-  // 1. Nếu có initialLawyerId (từ trang khác chuyển tới), hãy load thông tin luật sư đó
+  // 1. Load thông tin luật sư ban đầu (nếu có ID)
   useEffect(() => {
     if (initialLawyerId) {
       const fetchInitialLawyer = async () => {
@@ -46,22 +46,26 @@ export default function CreateCase() {
     }
   }, [initialLawyerId]);
 
-  // 2. Hàm xử lý tìm kiếm (Debounce)
+  // 2. Tìm kiếm luật sư (CHỈ LẤY APPROVED)
   useEffect(() => {
     if (!searchTerm.trim()) {
       setSearchResults([]);
       return;
     }
 
-    // Clear timeout cũ để tránh gọi API liên tục khi đang gõ
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
 
     searchTimeoutRef.current = setTimeout(async () => {
       setSearching(true);
       try {
-        // Gọi API tìm kiếm luật sư
+        // QUAN TRỌNG: Thêm status: 'APPROVED' để chỉ lấy luật sư đã xác minh
         const res = await axiosInstance.get(`/api/search/lawyers`, {
-          params: { keyword: searchTerm, page: 0, size: 5 }
+          params: { 
+            keyword: searchTerm, 
+            status: 'APPROVED', 
+            page: 0, 
+            size: 5 
+          }
         });
         if (res.data.success) {
           setSearchResults(res.data.data.content || []);
@@ -72,26 +76,27 @@ export default function CreateCase() {
       } finally {
         setSearching(false);
       }
-    }, 500); // Delay 500ms
+    }, 500);
 
     return () => clearTimeout(searchTimeoutRef.current);
   }, [searchTerm]);
 
-  // 3. Xử lý khi chọn luật sư từ danh sách
+  // 3. Chọn luật sư
   const handleSelectLawyer = (lawyer) => {
+    console.log("Đã chọn luật sư:", lawyer); // Log để debug
     setFormData({ ...formData, lawyerId: lawyer.lawyerId });
     setSelectedLawyer(lawyer);
     setShowDropdown(false);
-    setSearchTerm(""); // Reset ô tìm kiếm
+    setSearchTerm("");
   };
 
-  // 4. Bỏ chọn luật sư
+  // 4. Bỏ chọn
   const handleRemoveLawyer = () => {
     setFormData({ ...formData, lawyerId: "" });
     setSelectedLawyer(null);
   };
 
-  // 5. Submit form tạo vụ án
+  // 5. Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.lawyerId) {
@@ -99,11 +104,14 @@ export default function CreateCase() {
       return;
     }
 
+    // Log payload trước khi gửi để kiểm tra
+    console.log("Dữ liệu gửi đi:", formData);
+
     setLoading(true);
     try {
       const res = await caseService.createCase(formData);
       if (res.data.success) {
-        alert("Tạo hồ sơ vụ án thành công!");
+        alert(`Tạo hồ sơ vụ án thành công cho Luật sư ID: ${formData.lawyerId}`);
         navigate(`/cases/${res.data.data.caseId}`);
       }
     } catch (error) {
@@ -114,7 +122,6 @@ export default function CreateCase() {
     }
   };
 
-  // Helper hiển thị avatar
   const getAvatar = (lawyer) => {
     if (lawyer.avatarUrl?.startsWith("http")) return lawyer.avatarUrl;
     if (lawyer.avatarUrl) return `http://localhost:8080${lawyer.avatarUrl}`;
@@ -129,7 +136,6 @@ export default function CreateCase() {
         </h1>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Tiêu đề */}
           <div>
             <label className="block text-sm font-semibold mb-2 dark:text-slate-300">
               Tiêu đề vụ việc <span className="text-red-500">*</span>
@@ -144,38 +150,39 @@ export default function CreateCase() {
             />
           </div>
           
-          {/* Chọn Luật Sư (Đã nâng cấp) */}
           <div className="relative">
             <label className="block text-sm font-semibold mb-2 dark:text-slate-300">
               Luật sư phụ trách <span className="text-red-500">*</span>
             </label>
 
-            {/* Nếu đã chọn luật sư -> Hiển thị Card thông tin luật sư đã chọn */}
             {selectedLawyer ? (
               <div className="flex items-center justify-between p-3 border border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <div className="flex items-center gap-3">
                   <img 
                     src={getAvatar(selectedLawyer)} 
                     alt="Avatar" 
-                    className="w-10 h-10 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover border border-slate-300"
                   />
                   <div>
-                    <p className="font-bold text-slate-800 dark:text-slate-200">{selectedLawyer.fullName}</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200 text-base">
+                      {selectedLawyer.fullName} 
+                      {/* Hiển thị ID để đối chiếu */}
+                      <span className="text-sm font-normal text-blue-600 ml-2">(ID: #{selectedLawyer.lawyerId})</span>
+                    </p>
                     <p className="text-xs text-slate-500">
-                      {selectedLawyer.barAssociationName || "Luật sư tự do"} • Kinh nghiệm: {selectedLawyer.yearsOfExp} năm
+                      {selectedLawyer.barAssociationName || "Luật sư tự do"} • {selectedLawyer.yearsOfExp} năm KN
                     </p>
                   </div>
                 </div>
                 <button 
                   type="button"
                   onClick={handleRemoveLawyer}
-                  className="text-red-500 hover:text-red-700 text-sm font-medium px-3 py-1"
+                  className="text-red-500 hover:text-red-700 text-sm font-medium px-3 py-1 hover:bg-red-50 rounded"
                 >
-                  Thay đổi
+                  ✕ Bỏ chọn
                 </button>
               </div>
             ) : (
-              /* Nếu chưa chọn -> Hiển thị ô tìm kiếm */
               <div className="relative">
                 <div className="flex items-center border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
                   <span className="material-symbols-outlined px-3 text-slate-400">search</span>
@@ -194,7 +201,6 @@ export default function CreateCase() {
                   )}
                 </div>
 
-                {/* Dropdown kết quả tìm kiếm */}
                 {showDropdown && searchResults.length > 0 && (
                   <ul className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                     {searchResults.map((lawyer) => (
@@ -206,11 +212,14 @@ export default function CreateCase() {
                         <img 
                           src={getAvatar(lawyer)} 
                           alt={lawyer.fullName} 
-                          className="w-8 h-8 rounded-full object-cover"
+                          className="w-10 h-10 rounded-full object-cover"
                         />
                         <div>
-                          <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{lawyer.fullName}</p>
-                          <p className="text-xs text-slate-500">{lawyer.email}</p>
+                          <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                            {lawyer.fullName}
+                            <span className="text-xs text-blue-500 ml-1">#{lawyer.lawyerId}</span>
+                          </p>
+                          <p className="text-xs text-slate-500 truncate max-w-[200px]">{lawyer.email}</p>
                         </div>
                       </li>
                     ))}
@@ -219,14 +228,13 @@ export default function CreateCase() {
                 
                 {showDropdown && !searching && searchTerm && searchResults.length === 0 && (
                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 p-3 text-center text-slate-500 text-sm border rounded-lg shadow-lg">
-                     Không tìm thấy luật sư nào.
+                     Không tìm thấy luật sư đã xác minh nào.
                    </div>
                 )}
               </div>
             )}
           </div>
 
-          {/* Mô tả chi tiết */}
           <div>
             <label className="block text-sm font-semibold mb-2 dark:text-slate-300">
               Mô tả chi tiết <span className="text-red-500">*</span>
@@ -241,7 +249,6 @@ export default function CreateCase() {
             />
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}

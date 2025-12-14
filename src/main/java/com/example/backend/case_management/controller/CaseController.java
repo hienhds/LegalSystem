@@ -122,7 +122,9 @@ public class CaseController {
             HttpServletRequest request
     ) {
         Long userId = userDetails.getUser().getUserId();
-        Pageable pageable = PageRequest.of(page, size);
+        
+        // ✅ THAY ĐỔI: Thêm Sort.by(...).descending() để luôn lấy mới nhất
+        Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
         
         Page<CaseResponse> cases = caseService.getMyCases(userId, pageable);
 
