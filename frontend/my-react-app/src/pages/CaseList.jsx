@@ -2,15 +2,17 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { caseService } from "../services/caseService";
 import Layout from "../components/Layout";
+import useUserProfile from "../hooks/useUserProfile"; // [Thêm mới] Import hook lấy thông tin user
 
 export default function CaseList() {
+  const { user } = useUserProfile(); // [Thêm mới] Lấy thông tin user hiện tại
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
   // State cho tìm kiếm
   const [searchTerm, setSearchTerm] = useState("");
-  const [keyword, setKeyword] = useState(""); // Keyword thực sự để gọi API
+  const [keyword, setKeyword] = useState("");
 
   const navigate = useNavigate();
 
@@ -19,7 +21,6 @@ export default function CaseList() {
     const fetchCases = async () => {
       setLoading(true);
       try {
-        // Truyền keyword vào hàm service
         const res = await caseService.getMyCases(0, 20, keyword);
         if (res.data.success) {
           setCases(res.data.data.content || []);
@@ -32,12 +33,11 @@ export default function CaseList() {
       }
     };
     fetchCases();
-  }, [keyword]); // useEffect sẽ chạy lại khi 'keyword' thay đổi
+  }, [keyword]);
 
-  // Xử lý khi bấm nút Tìm kiếm hoặc Enter
   const handleSearch = (e) => {
     e.preventDefault();
-    setKeyword(searchTerm); // Cập nhật keyword để trigger useEffect
+    setKeyword(searchTerm);
   };
 
   const getStatusColor = (status) => {
@@ -54,13 +54,17 @@ export default function CaseList() {
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
           <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Hồ Sơ Vụ Án Của Tôi</h1>
-          <Link to="/create-case" className="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 flex items-center gap-2">
-            <span className="material-symbols-outlined">add</span>
-            Tạo vụ án mới
-          </Link>
+          
+          {/* [SỬA ĐỔI QUAN TRỌNG] Chỉ hiển thị nút tạo vụ án nếu là LAWYER */}
+          {user?.role === "LAWYER" && (
+            <Link to="/create-case" className="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 flex items-center gap-2">
+              <span className="material-symbols-outlined">add</span>
+              Tạo vụ án mới
+            </Link>
+          )}
         </div>
 
-        {/* --- PHẦN TÌM KIẾM MỚI THÊM --- */}
+        {/* Phần tìm kiếm */}
         <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 mb-6">
           <form onSubmit={handleSearch} className="flex gap-2">
             <div className="relative flex-1">
@@ -81,7 +85,6 @@ export default function CaseList() {
             </button>
           </form>
         </div>
-        {/* ----------------------------- */}
 
         {error && (
           <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg border border-red-400">
@@ -131,7 +134,9 @@ export default function CaseList() {
                     <span className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">
                       <span className="material-symbols-outlined text-[16px]">person</span> 
                       {/* Hiển thị thông minh: Nếu là LS thì hiện tên khách, nếu là Khách thì hiện tên LS */}
-                      {c.clientName && c.lawyerName ? `${c.clientName} (KH) - ${c.lawyerName} (LS)` : (c.lawyerName || c.clientName)}
+                      {c.clientName && c.lawyerName ? (
+                        user?.role === 'LAWYER' ? c.clientName : c.lawyerName
+                      ) : (c.lawyerName || c.clientName)}
                     </span>
                     <span className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">
                       <span className="material-symbols-outlined text-[16px]">calendar_today</span> 
