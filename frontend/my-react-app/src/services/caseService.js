@@ -3,7 +3,7 @@ import axiosInstance from "../utils/axiosInstance";
 export const caseService = {
   // 1. Tạo vụ án mới
   createCase: async (data) => {
-    // data: { title, description, lawyerId }
+    // data: { title, description, clientId }
     return await axiosInstance.post("/api/cases", data);
   },
 
@@ -29,10 +29,14 @@ export const caseService = {
     });
   },
   
-  // (Optional) Lấy danh sách vụ án của user hiện tại
-  // Lưu ý: Bạn cần đảm bảo Backend có endpoint này (vd: /api/cases/my-cases)
-  // 5. Lấy danh sách vụ án của tôi
-  getMyCases: async (page = 0, size = 10) => {
-    return await axiosInstance.get(`/api/cases?page=${page}&size=${size}`);
+  // 5. LẤY DANH SÁCH VỤ ÁN CỦA TÔI (Đã thêm keyword)
+  getMyCases: async (page = 0, size = 10, keyword = "") => {
+    return await axiosInstance.get(`/api/cases`, {
+      params: { 
+        page, 
+        size, 
+        keyword // Truyền keyword vào đây
+      }
+    });
   }
 };

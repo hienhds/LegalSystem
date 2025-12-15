@@ -6,28 +6,40 @@ import Layout from "../components/Layout";
 export default function CaseList() {
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Thêm state lỗi
+  const [error, setError] = useState(null);
+  
+  // State cho tìm kiếm
+  const [searchTerm, setSearchTerm] = useState("");
+  const [keyword, setKeyword] = useState(""); // Keyword thực sự để gọi API
+
   const navigate = useNavigate();
 
+  // Gọi API mỗi khi keyword thay đổi
   useEffect(() => {
     const fetchCases = async () => {
+      setLoading(true);
       try {
-        const res = await caseService.getMyCases();
+        // Truyền keyword vào hàm service
+        const res = await caseService.getMyCases(0, 20, keyword);
         if (res.data.success) {
           setCases(res.data.data.content || []);
         }
       } catch (err) {
         console.error("Lỗi tải danh sách:", err);
-        // Hiển thị thông báo lỗi thân thiện hơn thay vì crash
         setError("Không thể tải danh sách vụ án. Vui lòng thử lại sau.");
       } finally {
         setLoading(false);
       }
     };
     fetchCases();
-  }, []);
+  }, [keyword]); // useEffect sẽ chạy lại khi 'keyword' thay đổi
 
-  // ... (giữ nguyên hàm getStatusColor)
+  // Xử lý khi bấm nút Tìm kiếm hoặc Enter
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setKeyword(searchTerm); // Cập nhật keyword để trigger useEffect
+  };
+
   const getStatusColor = (status) => {
       switch(status) {
         case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800';
@@ -40,7 +52,7 @@ export default function CaseList() {
   return (
     <Layout>
       <div className="max-w-6xl mx-auto p-6">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
           <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Hồ Sơ Vụ Án Của Tôi</h1>
           <Link to="/create-case" className="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 flex items-center gap-2">
             <span className="material-symbols-outlined">add</span>
@@ -48,7 +60,29 @@ export default function CaseList() {
           </Link>
         </div>
 
-        {/* Hiển thị lỗi nếu có */}
+        {/* --- PHẦN TÌM KIẾM MỚI THÊM --- */}
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 mb-6">
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <div className="relative flex-1">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+              <input
+                type="text"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                placeholder="Tìm theo tên hồ sơ, tên người liên quan, SĐT, Email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <button 
+              type="submit"
+              className="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-blue-600 transition-colors shadow-sm flex items-center gap-2"
+            >
+              Tìm kiếm
+            </button>
+          </form>
+        </div>
+        {/* ----------------------------- */}
+
         {error && (
           <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg border border-red-400">
             {error} (Mã lỗi server: 500)
@@ -56,14 +90,24 @@ export default function CaseList() {
         )}
 
         {loading ? (
-          <div className="text-center py-10">Đang tải dữ liệu...</div>
+          <div className="text-center py-10">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-slate-500">Đang tải dữ liệu...</p>
+          </div>
         ) : cases.length === 0 && !error ? (
           <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
             <span className="material-symbols-outlined text-6xl text-slate-300">folder_off</span>
-            <p className="mt-4 text-slate-500 text-lg">Bạn chưa có hồ sơ vụ án nào.</p>
-            <Link to="/create-case" className="text-primary mt-2 inline-block hover:underline font-medium">
-              Tạo hồ sơ ngay
-            </Link>
+            <p className="mt-4 text-slate-500 text-lg">
+              {keyword ? `Không tìm thấy kết quả cho "${keyword}"` : "Bạn chưa có hồ sơ vụ án nào."}
+            </p>
+            {keyword && (
+              <button 
+                onClick={() => { setSearchTerm(""); setKeyword(""); }}
+                className="mt-2 text-primary hover:underline font-medium"
+              >
+                Xóa bộ lọc tìm kiếm
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid gap-4">
@@ -71,19 +115,33 @@ export default function CaseList() {
               <div 
                 key={c.caseId} 
                 onClick={() => navigate(`/cases/${c.caseId}`)}
-                className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 cursor-pointer hover:shadow-md transition-all flex justify-between items-center group"
+                className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 cursor-pointer hover:shadow-md transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 group"
               >
-                <div>
-                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1 group-hover:text-blue-600">{c.title}</h3>
-                  <p className="text-sm text-slate-500 line-clamp-1">{c.description}</p>
-                  <div className="mt-2 text-xs text-slate-400 flex gap-4">
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">person</span> {c.lawyerName || "Chưa có LS"}</span>
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">calendar_today</span> {new Date(c.createdAt).toLocaleDateString()}</span>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 transition-colors">
+                      {c.title}
+                    </h3>
+                    <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">#{c.caseId}</span>
+                  </div>
+                  
+                  <p className="text-sm text-slate-500 line-clamp-1 mb-2">{c.description}</p>
+                  
+                  <div className="flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">
+                      <span className="material-symbols-outlined text-[16px]">person</span> 
+                      {/* Hiển thị thông minh: Nếu là LS thì hiện tên khách, nếu là Khách thì hiện tên LS */}
+                      {c.clientName && c.lawyerName ? `${c.clientName} (KH) - ${c.lawyerName} (LS)` : (c.lawyerName || c.clientName)}
+                    </span>
+                    <span className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">
+                      <span className="material-symbols-outlined text-[16px]">calendar_today</span> 
+                      {new Date(c.createdAt).toLocaleDateString("vi-VN")}
+                    </span>
                   </div>
                 </div>
                 <div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(c.status)}`}>
-                    {c.status}
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${getStatusColor(c.status)}`}>
+                    {c.status === 'IN_PROGRESS' ? 'Đang xử lý' : c.status}
                   </span>
                 </div>
               </div>

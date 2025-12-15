@@ -11,18 +11,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.data.domain.Page; // Nhớ import Page
-import org.springframework.data.domain.PageRequest; // Nhớ import PageRequest
-import org.springframework.data.domain.Pageable; // Nhớ import Pageable
-import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/cases")
@@ -31,18 +29,14 @@ public class CaseController {
 
     private final CaseService caseService;
 
-    // 1. TẠO VỤ ÁN (Đã sửa OK)
     @PostMapping
-    @PreAuthorize("hasAuthority('LAWYER')") // <--- THÊM: Chỉ luật sư mới được gọi
+    @PreAuthorize("hasAuthority('LAWYER')")
     public ResponseEntity<ApiResponse<CaseResponse>> createCase(
             @RequestBody CreateCaseRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest servletRequest
     ) {
-        // Người đang đăng nhập là Luật sư
         Long lawyerId = userDetails.getUser().getUserId();
-        
-        // Gọi service với lawyerId là người tạo, request chứa clientId
         CaseResponse caseResponse = caseService.createCase(lawyerId, request);
 
         ApiResponse<CaseResponse> response = ApiResponse.<CaseResponse>builder()
@@ -55,13 +49,11 @@ public class CaseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // 2. LẤY CHI TIẾT VỤ ÁN (Cần sửa chỗ này thì mới test được)
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<CaseResponse>> getCase(
             @PathVariable Long id,
             HttpServletRequest request
     ) {
-        // GỌI SERVICE LẤY CHI TIẾT
         CaseResponse caseDetail = caseService.getCaseDetail(id);
 
         ApiResponse<CaseResponse> response = ApiResponse.<CaseResponse>builder()
@@ -75,7 +67,6 @@ public class CaseController {
         return ResponseEntity.ok(response);
     }
 
-    // 3. CẬP NHẬT TIẾN ĐỘ (Đã OK)
     @PostMapping("/{id}/updates")
     public ResponseEntity<ApiResponse<CaseUpdateResponse>> addUpdate(
             @PathVariable Long id,
@@ -97,7 +88,6 @@ public class CaseController {
         return ResponseEntity.ok(response);
     }
 
-    // 4. UPLOAD TÀI LIỆU (Đã OK)
     @PostMapping(value = "/{id}/documents", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<String>> uploadDocument(
             @PathVariable Long id,
@@ -118,20 +108,22 @@ public class CaseController {
 
         return ResponseEntity.ok(response);
     }
-    // 5. LẤY DANH SÁCH VỤ ÁN CỦA TÔI (API này đang thiếu)
+
+    // 5. LẤY DANH SÁCH VỤ ÁN CỦA TÔI (CÓ TÌM KIẾM)
     @GetMapping
     public ResponseEntity<ApiResponse<Page<CaseResponse>>> getMyCases(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword, // Thêm param keyword
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest request
     ) {
         Long userId = userDetails.getUser().getUserId();
         
-        // ✅ THAY ĐỔI: Thêm Sort.by(...).descending() để luôn lấy mới nhất
-        Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
+        // Sắp xếp: Mới nhất lên đầu
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         
-        Page<CaseResponse> cases = caseService.getMyCases(userId, pageable);
+        Page<CaseResponse> cases = caseService.getMyCases(userId, keyword, pageable);
 
         ApiResponse<Page<CaseResponse>> response = ApiResponse.<Page<CaseResponse>>builder()
                 .success(true)
