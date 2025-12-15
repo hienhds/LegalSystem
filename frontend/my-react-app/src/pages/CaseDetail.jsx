@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { caseService } from "../services/caseService";
 import Layout from "../components/Layout";
-import useUserProfile from "../hooks/useUserProfile"; // Để check quyền user
+import useUserProfile from "../hooks/useUserProfile";
 
 export default function CaseDetail() {
   const { id } = useParams();
@@ -14,7 +14,7 @@ export default function CaseDetail() {
   const [updateForm, setUpdateForm] = useState({ title: "", description: "", status: "" });
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
-  // Load dữ liệu
+  // Load dữ liệu vụ án
   const fetchCaseDetail = async () => {
     try {
       const res = await caseService.getCaseDetail(id);
@@ -32,24 +32,23 @@ export default function CaseDetail() {
     fetchCaseDetail();
   }, [id]);
 
-  // Xử lý upload file
+  // Xử lý upload file (Chỉ Luật sư)
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     try {
       await caseService.uploadDocument(id, file);
       alert("Upload tài liệu thành công!");
-      fetchCaseDetail(); // Reload lại data
+      fetchCaseDetail(); // Reload lại data sau khi upload
     } catch (error) {
-      alert("Lỗi upload: " + error.message);
+      alert("Lỗi upload: " + (error.response?.data?.message || error.message));
     }
   };
 
-  // Xử lý cập nhật tiến độ
+  // Xử lý cập nhật tiến độ (Chỉ Luật sư)
   const handleUpdateProgress = async (e) => {
     e.preventDefault();
     try {
-      // Nếu không chọn status mới, giữ nguyên status cũ (hoặc không gửi field này)
       const payload = { ...updateForm };
       if (!payload.status) delete payload.status;
 
@@ -59,16 +58,15 @@ export default function CaseDetail() {
       setUpdateForm({ title: "", description: "", status: "" });
       fetchCaseDetail();
     } catch (error) {
-      alert("Lỗi cập nhật: " + error.message);
+      alert("Lỗi cập nhật: " + (error.response?.data?.message || error.message));
     }
   };
 
+  // Xác định quyền: User hiện tại có phải là Luật sư (Role LAWYER) không?
+  const isLawyer = user?.role === "LAWYER";
+
   if (loading) return <Layout><div>Đang tải...</div></Layout>;
   if (!caseData) return <Layout><div>Không tìm thấy vụ án</div></Layout>;
-
-  // Kiểm tra xem user hiện tại có phải là Luật sư của vụ án này không
-  // Lưu ý: Logic này phụ thuộc vào cấu trúc user object của bạn
-  const isLawyerOfThisCase = user?.role === "LAWYER" && user?.fullName === caseData.lawyerName; 
 
   return (
     <Layout>
@@ -82,7 +80,9 @@ export default function CaseDetail() {
                 caseData.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 
                 caseData.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
               }`}>
-                {caseData.status}
+                {caseData.status === 'IN_PROGRESS' ? 'Đang thực hiện' : 
+                 caseData.status === 'COMPLETED' ? 'Hoàn thành' : 
+                 caseData.status === 'CANCELLED' ? 'Đã hủy' : caseData.status}
               </span>
             </div>
             <div className="text-right text-sm text-slate-500">
@@ -115,12 +115,13 @@ export default function CaseDetail() {
           <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border dark:border-slate-800">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">Tiến độ xử lý</h2>
-              {isLawyerOfThisCase && (
+              {/* Chỉ Luật sư mới được cập nhật tiến độ */}
+              {isLawyer && (
                 <button 
                   onClick={() => setShowUpdateModal(true)}
-                  className="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600"
+                  className="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 transition flex items-center gap-1"
                 >
-                  + Cập nhật tiến độ
+                  <span className="material-symbols-outlined text-sm">edit_note</span> Cập nhật
                 </button>
               )}
             </div>
@@ -154,11 +155,11 @@ export default function CaseDetail() {
                   href={`http://localhost:8080${doc.fileUrl}`} 
                   target="_blank" 
                   rel="noreferrer"
-                  className="flex items-center p-3 rounded-lg border hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                  className="flex items-center p-3 rounded-lg border hover:bg-slate-50 dark:hover:bg-slate-800 transition group"
                 >
-                  <span className="material-symbols-outlined text-red-500 mr-3">description</span>
+                  <span className="material-symbols-outlined text-red-500 mr-3 group-hover:scale-110 transition-transform">description</span>
                   <div className="overflow-hidden">
-                    <p className="text-sm font-medium truncate">{doc.fileName}</p>
+                    <p className="text-sm font-medium truncate text-slate-800 dark:text-slate-200">{doc.fileName}</p>
                     <p className="text-xs text-slate-500">
                       {new Date(doc.uploadedAt).toLocaleDateString()} • {doc.uploadedByName}
                     </p>
@@ -166,60 +167,94 @@ export default function CaseDetail() {
                 </a>
               ))}
               {(!caseData.documents || caseData.documents.length === 0) && (
-                <p className="text-sm text-slate-500">Chưa có tài liệu nào.</p>
+                <p className="text-sm text-slate-500 italic text-center py-4">Chưa có tài liệu nào.</p>
               )}
             </div>
 
-            {/* Nút upload tài liệu */}
-            <div className="border-t pt-4">
-              <label className="block w-full cursor-pointer">
-                <span className="sr-only">Chọn tài liệu</span>
-                <input 
-                  type="file" 
-                  className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  onChange={handleFileUpload}
-                />
-              </label>
-            </div>
+            {/* Nút upload tài liệu - CHỈ HIỂN THỊ NẾU LÀ LUẬT SƯ */}
+            {isLawyer && (
+              <div className="border-t pt-4">
+                <label className="block w-full cursor-pointer group">
+                  <span className="sr-only">Chọn tài liệu</span>
+                  <div className="flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-blue-300 rounded-lg hover:bg-blue-50 transition cursor-pointer text-blue-600">
+                    <span className="material-symbols-outlined mr-2">upload_file</span>
+                    <span className="text-sm font-semibold">Thêm tài liệu mới</span>
+                  </div>
+                  <input 
+                    type="file" 
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                </label>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Modal Cập nhật tiến độ */}
+      {/* Modal Cập nhật tiến độ (Chỉ render khi show) */}
       {showUpdateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">Cập nhật tiến độ mới</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Cập nhật tiến độ</h3>
+              <button onClick={() => setShowUpdateModal(false)} className="text-slate-400 hover:text-slate-600">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
             <form onSubmit={handleUpdateProgress} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Tiêu đề (VD: Đã nộp đơn lên tòa)"
-                className="w-full p-2 border rounded"
-                value={updateForm.title}
-                onChange={e => setUpdateForm({...updateForm, title: e.target.value})}
-                required
-              />
-              <textarea
-                placeholder="Mô tả chi tiết..."
-                className="w-full p-2 border rounded"
-                rows="3"
-                value={updateForm.description}
-                onChange={e => setUpdateForm({...updateForm, description: e.target.value})}
-              />
-              <select
-                className="w-full p-2 border rounded"
-                value={updateForm.status}
-                onChange={e => setUpdateForm({...updateForm, status: e.target.value})}
-              >
-                <option value="">-- Giữ nguyên trạng thái cũ --</option>
-                <option value="IN_PROGRESS">Đang xử lý</option>
-                <option value="PENDING_APPROVAL">Chờ duyệt</option>
-                <option value="COMPLETED">Hoàn thành</option>
-                <option value="CANCELLED">Đã hủy</option>
-              </select>
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowUpdateModal(false)} className="px-4 py-2 text-slate-600">Hủy</button>
-                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Lưu cập nhật</button>
+              <div>
+                <label className="block text-sm font-medium mb-1">Tiêu đề cập nhật</label>
+                <input
+                  type="text"
+                  placeholder="VD: Đã nộp đơn lên tòa"
+                  className="w-full p-2 border border-slate-300 rounded-lg dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={updateForm.title}
+                  onChange={e => setUpdateForm({...updateForm, title: e.target.value})}
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Chi tiết</label>
+                <textarea
+                  placeholder="Mô tả chi tiết công việc đã thực hiện..."
+                  className="w-full p-2 border border-slate-300 rounded-lg dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 outline-none"
+                  rows="3"
+                  value={updateForm.description}
+                  onChange={e => setUpdateForm({...updateForm, description: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Trạng thái vụ án</label>
+                <select
+                  className="w-full p-2 border border-slate-300 rounded-lg dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={updateForm.status}
+                  onChange={e => setUpdateForm({...updateForm, status: e.target.value})}
+                >
+                  <option value="">-- Giữ nguyên trạng thái cũ --</option>
+                  <option value="IN_PROGRESS">Đang xử lý</option>
+                  <option value="COMPLETED">Hoàn thành</option>
+                  <option value="CANCELLED">Đã hủy / Tạm dừng</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <button 
+                  type="button" 
+                  onClick={() => setShowUpdateModal(false)} 
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                >
+                  Hủy
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition shadow-md"
+                >
+                  Lưu cập nhật
+                </button>
               </div>
             </form>
           </div>

@@ -32,13 +32,17 @@ public class CaseController {
 
     // 1. TẠO VỤ ÁN (Đã sửa OK)
     @PostMapping
+    @PreAuthorize("hasAuthority('LAWYER')") // <--- THÊM: Chỉ luật sư mới được gọi
     public ResponseEntity<ApiResponse<CaseResponse>> createCase(
             @RequestBody CreateCaseRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest servletRequest
     ) {
-        Long clientId = userDetails.getUser().getUserId();
-        CaseResponse caseResponse = caseService.createCase(clientId, request);
+        // Người đang đăng nhập là Luật sư
+        Long lawyerId = userDetails.getUser().getUserId();
+        
+        // Gọi service với lawyerId là người tạo, request chứa clientId
+        CaseResponse caseResponse = caseService.createCase(lawyerId, request);
 
         ApiResponse<CaseResponse> response = ApiResponse.<CaseResponse>builder()
                 .success(true)

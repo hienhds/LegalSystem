@@ -30,29 +30,34 @@ public class CaseService {
     private final UploadImageService uploadService; // Inject service upload
 
     // --- CODE CŨ: TẠO VÀ LẤY CHI TIẾT ---
-    public CaseResponse createCase(Long clientId, CreateCaseRequest request) {
-        User client = userRepository.findById(clientId)
-                .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Client not found"));
-
-        User lawyer = userRepository.findById(request.getLawyerId())
+    // 1. SỬA: Luật sư tạo vụ án cho Khách hàng
+    public CaseResponse createCase(Long lawyerId, CreateCaseRequest request) {
+        // Lấy thông tin Luật sư (người đang đăng nhập)
+        User lawyer = userRepository.findById(lawyerId)
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Lawyer not found"));
-
+        
+        // Kiểm tra chắc chắn user này có quyền luật sư (dù Controller đã check role)
         if (lawyer.getLawyer() == null) {
-            throw new AppException(ErrorType.BAD_REQUEST, "User is not a lawyer");
+             throw new AppException(ErrorType.FORBIDDEN, "Tài khoản này không phải là luật sư");
         }
 
+        // Lấy thông tin Khách hàng (từ request gửi lên)
+        User client = userRepository.findById(request.getClientId())
+                .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Client not found"));
+
+        // Tạo vụ án mới
         Case newCase = Case.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .client(client)
-                .lawyer(lawyer)
-                .status(CaseStatus.IN_PROGRESS)
+                .client(client)   // Khách hàng
+                .lawyer(lawyer)   // Luật sư phụ trách
+                .status(CaseStatus.IN_PROGRESS) // <--- SỬA: Trạng thái là Đang thực hiện luôn
                 .build();
 
         Case savedCase = caseRepository.save(newCase);
         return CaseResponse.from(savedCase);
     }
-
+    // 2. LẤY CHI TIẾT VỤ ÁN
     public CaseResponse getCaseDetail(Long caseId) {
         Case c = caseRepository.findById(caseId)
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Case not found"));
@@ -90,7 +95,7 @@ public class CaseService {
         return CaseUpdateResponse.from(update);
     }
 
-    // --- CODE MỚI: UPLOAD TÀI LIỆU ---
+    // 2. SỬA: Upload tài liệu (Chỉ Luật sư mới được up)
     public String uploadCaseDocument(Long caseId, Long userId, MultipartFile file) {
         Case c = caseRepository.findById(caseId)
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Case not found"));
@@ -98,15 +103,11 @@ public class CaseService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "User not found"));
 
-        // Check quyền: Client hoặc Lawyer của vụ án mới được up
-        boolean isClient = c.getClient().getUserId().equals(userId);
-        boolean isLawyer = c.getLawyer().getUserId().equals(userId);
-
-        if (!isClient && !isLawyer) {
-            throw new AppException(ErrorType.FORBIDDEN, "Bạn không có quyền upload tài liệu cho vụ án này");
+        // Check: Chỉ có Luật sư phụ trách vụ án này mới được upload
+        if (!c.getLawyer().getUserId().equals(userId)) {
+            throw new AppException(ErrorType.FORBIDDEN, "Chỉ luật sư phụ trách mới được thêm tài liệu vụ án");
         }
 
-        // Gọi hàm uploadFile (đã sửa ở UploadImageService)
         String fileUrl = uploadService.uploadFile(userId, file, "case_docs");
 
         CaseDocument doc = CaseDocument.builder()

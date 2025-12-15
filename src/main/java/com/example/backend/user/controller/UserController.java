@@ -1,9 +1,7 @@
 package com.example.backend.user.controller;
 
-
+import com.example.backend.admin.dto.UserManagementResponse;
 import com.example.backend.common.dto.ApiResponse;
-import com.example.backend.common.exception.AppException;
-import com.example.backend.common.exception.ErrorType;
 import com.example.backend.common.security.CustomUserDetails;
 import com.example.backend.common.service.UploadImageService;
 import com.example.backend.lawyer.dto.request.LawyerRequest;
@@ -18,15 +16,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -36,6 +38,7 @@ public class UserController {
     private final UserService userService;
     private final UploadImageService uploadImageService;
     private final LawyerService lawyerService;
+    private final UserRepository userRepository;
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
@@ -71,7 +74,6 @@ public class UserController {
 
         Long userId = user.getUser().getUserId();
         
-        // Chỉ cho phép cập nhật address, fullName, phoneNumber
         UserProfileUpdateRequest limitedRequest = new UserProfileUpdateRequest();
         limitedRequest.setAddress(request.getAddress());
         limitedRequest.setFullName(request.getFullName());
@@ -138,5 +140,40 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-}
 
+    // 🔥 API MỚI: TÌM KIẾM USER (Dành cho Luật sư & Admin)
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('LAWYER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<Page<UserManagementResponse>>> searchUsers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fullName").ascending());
+        
+        String searchTerm = keyword != null ? keyword : "";
+        Page<User> usersPage = userRepository.findByEmailContainingOrFullNameContaining(
+                searchTerm, searchTerm, pageable
+        );
+
+        Page<UserManagementResponse> responsePage = usersPage.map(u -> UserManagementResponse.builder()
+                .userId(u.getUserId())
+                .fullName(u.getFullName())
+                .email(u.getEmail())
+                .phoneNumber(u.getPhoneNumber())
+                .avatarUrl(u.getAvatarUrl())
+                .role(u.getRoleName())
+                .build());
+
+        ApiResponse<Page<UserManagementResponse>> response = ApiResponse.<Page<UserManagementResponse>>builder()
+                .success(true)
+                .message("Tìm kiếm thành công")
+                .data(responsePage)
+                .timestamp(Instant.now())
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+}

@@ -1,4 +1,5 @@
 package com.example.backend.common.config;
+
 import com.example.backend.common.security.CustomUserDetailsService;
 import com.example.backend.common.security.JwtAuthenticationFilter;
 import com.example.backend.common.security.JwtTokenProvider;
@@ -16,12 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * Cấu hình bảo mật chính của hệ thống.
- * - Stateless (JWT)
- * - Cho phép truy cập các endpoint công khai như đăng ký, đăng nhập, verify, reset password
- * - Bảo vệ các API khác yêu cầu xác thực JWT
- */
 @Configuration
 @RequiredArgsConstructor
 @EnableMethodSecurity
@@ -35,75 +30,44 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtProvider, customUserDetailsService);
 
         http
-                // Tắt CSRF vì ta dùng JWT
-                .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                // 1. Các API công khai
+                .requestMatchers(
+                    "/api/auth/**",
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/chat/**",
+                    "/app/**",
+                    "/topic/**",
+                    "/uploads/**",
+                    "/images/**"
+                ).permitAll()
 
-                // Cấu hình session là stateless (vì JWT không cần session)
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 2. Preflight request
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Cấu hình ủy quyền request
-                .authorizeHttpRequests(auth -> auth
-                    // ✅ Các endpoint công khai
-                    .requestMatchers(
-                        "/api/auth/login",
-                        "/api/auth/register",
-                        "/api/auth/verify",
-                        "/api/auth/forgot-password",
-                        "/api/auth/reset-password/**",
-                        "/v3/api-docs/**",
-                        "/swagger-ui/**",
-                        "/swagger-ui.html"
-                    ).permitAll()
-
-                    // ✅ Cho phép WebSocket endpoint
-                    .requestMatchers(
-                        "/chat/**",
-                        "/app/**",
-                        "/topic/**"
-                    ).permitAll()
-
-                    // ✅ Cho phép truy cập tĩnh (nếu bạn có file ảnh, css,…)
-                    .requestMatchers(
-                        "/resources/**",
-                        "/static/**",
-                        "/images/**",
-                        "/css/**",
-                        "/js/**",
-                        "/uploads/**"
-                    ).permitAll()
-
-        //                        // USER + LAWYER + ADMIN
-        //                        .requestMatchers("/api/user/**").hasAnyRole("USER", "LAWYER", "ADMIN")
-        //
-        //                        // LAWYER + ADMIN
-        //                        .requestMatchers("/api/lawyer/**").hasAnyRole("LAWYER", "ADMIN")
-        //
-        //                        // ONLY ADMIN
-                    // Cho phép preflight OPTIONS cho tất cả endpoint
-                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-        //                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                    // Các request còn lại cần xác thực
-                    .anyRequest().authenticated()
-                )
-
-                // Gắn JWT filter vào trước UsernamePasswordAuthenticationFilter
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                // =======================================================
+                // ✅ THÊM DÒNG NÀY: Mở quyền truy cập API search user cho cả LAWYER
+                .requestMatchers(HttpMethod.GET, "/api/admin/users").hasAnyAuthority("ADMIN", "LAWYER")
+    
+                // Các API admin khác thì chặn
+                .requestMatchers("/api/admin/**").hasAuthority("ADMIN") 
+    
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    /**
-     * Bean quản lý xác thực cho AuthenticationManager
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * Bean mã hóa mật khẩu
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
