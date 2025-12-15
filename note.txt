@@ -1,3 +1,5 @@
 git add .
 git commit -m "Hoang update"
 git push origin hoang
+
+./gradlew clean bootRun

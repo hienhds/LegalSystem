@@ -40,7 +40,9 @@ public class UserController {
     private final LawyerService lawyerService;
     private final UserRepository userRepository;
 
-    @GetMapping("/{id}")
+    // 🔥 FIX QUAN TRỌNG: Thêm :[0-9]+ để chỉ nhận ID là số. 
+    // Giúp đường dẫn /search không bị lọt vào đây nữa.
+    @GetMapping("/{id:[0-9]+}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         UserResponse response = userService.getUserById(id);
         return ResponseEntity.ok(response);
@@ -141,7 +143,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // 🔥 API MỚI: TÌM KIẾM USER (Dành cho Luật sư & Admin)
+    // 🔥 API TÌM KIẾM: Bây giờ đã an toàn và sử dụng searchClients để lọc đúng người
     @GetMapping("/search")
     @PreAuthorize("hasAnyAuthority('LAWYER', 'ADMIN')")
     public ResponseEntity<ApiResponse<Page<UserManagementResponse>>> searchUsers(
@@ -153,9 +155,9 @@ public class UserController {
         Pageable pageable = PageRequest.of(page, size, Sort.by("fullName").ascending());
         
         String searchTerm = keyword != null ? keyword : "";
-        Page<User> usersPage = userRepository.findByEmailContainingOrFullNameContaining(
-                searchTerm, searchTerm, pageable
-        );
+        
+        // Gọi hàm searchClients đã thêm bên Repository
+        Page<User> usersPage = userRepository.searchClients(searchTerm, pageable);
 
         Page<UserManagementResponse> responsePage = usersPage.map(u -> UserManagementResponse.builder()
                 .userId(u.getUserId())
