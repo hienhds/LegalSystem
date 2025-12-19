@@ -42,6 +42,21 @@ export default function CaseDetail() {
     }
   };
 
+  // HÀM XỬ LÝ XÓA TÀI LIỆU (MỚI)
+  const handleDeleteDocument = async (docId, fileName) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa tài liệu "${fileName}" không?`)) {
+      return;
+    }
+
+    try {
+      await caseService.deleteDocument(id, docId);
+      alert("Xóa tài liệu thành công!");
+      fetchCaseDetail(); // Load lại danh sách
+    } catch (error) {
+      alert("Lỗi khi xóa: " + (error.response?.data?.message || error.message));
+    }
+  };
+
   const handleUpdateProgress = async (e) => {
     e.preventDefault();
     try {
@@ -73,29 +88,20 @@ export default function CaseDetail() {
     }
   };
 
-  // [ĐÃ SỬA] Hàm xử lý xem document thông minh hơn
   const handleView = async (docId, fileName) => {
     try {
-      // Gọi API lấy file
       const response = await caseService.viewDocument(id, docId);
-      
-      // Lấy Content-Type từ header trả về
       const contentType = response.headers['content-type'] || "";
-      
-      // Tạo Blob với đúng loại file
       const file = new Blob([response.data], { type: contentType });
       const fileURL = URL.createObjectURL(file);
 
-      // Kiểm tra xem trình duyệt có hỗ trợ loại file này không
       const isViewable = contentType.includes("pdf") || 
                          contentType.includes("image") || 
                          contentType.includes("text");
 
       if (isViewable) {
-          // Nếu xem được -> Mở tab mới
           window.open(fileURL, "_blank");
       } else {
-          // Nếu là Word/Excel/Zip -> Báo lỗi hoặc tự tải về
           const confirmDownload = window.confirm(
               `Trình duyệt không hỗ trợ xem trước file "${fileName}". Bạn có muốn tải về không?`
           );
@@ -207,9 +213,8 @@ export default function CaseDetail() {
                   <div className="flex items-center overflow-hidden mr-2">
                     <span className="material-symbols-outlined text-red-500 mr-3">description</span>
                     <div className="overflow-hidden">
-                      {/* Bấm vào tên file cũng View luôn */}
                       <button 
-                        onClick={() => handleView(doc.docId, doc.fileName)} // Truyền fileName vào đây
+                        onClick={() => handleView(doc.docId, doc.fileName)}
                         className="text-sm font-medium truncate text-blue-600 hover:underline block text-left"
                         title="Xem tài liệu"
                       >
@@ -222,9 +227,9 @@ export default function CaseDetail() {
                   </div>
                   
                   <div className="flex gap-1">
-                    {/* Nút Xem (Con mắt) */}
+                    {/* Nút Xem */}
                     <button
-                        onClick={() => handleView(doc.docId, doc.fileName)} // Truyền fileName vào đây
+                        onClick={() => handleView(doc.docId, doc.fileName)}
                         className="p-2 text-slate-400 hover:text-green-600 rounded-full hover:bg-green-50 transition"
                         title="Xem trực tiếp"
                     >
@@ -239,6 +244,17 @@ export default function CaseDetail() {
                     >
                         <span className="material-symbols-outlined text-xl">download</span>
                     </button>
+
+                    {/* Nút Delete (CHỈ LUẬT SƯ MỚI THẤY) */}
+                    {isLawyer && (
+                        <button
+                            onClick={() => handleDeleteDocument(doc.docId, doc.fileName)}
+                            className="p-2 text-slate-400 hover:text-red-600 rounded-full hover:bg-red-50 transition"
+                            title="Xóa tài liệu"
+                        >
+                            <span className="material-symbols-outlined text-xl">delete</span>
+                        </button>
+                    )}
                   </div>
                 </div>
               ))}

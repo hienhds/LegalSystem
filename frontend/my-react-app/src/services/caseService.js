@@ -47,10 +47,15 @@ export const caseService = {
     });
   },
 
-  // 7. [MỚI] XEM TÀI LIỆU TRỰC TIẾP
+  // 7. XEM TÀI LIỆU TRỰC TIẾP
   viewDocument: async (caseId, docId) => {
     return await axiosInstance.get(`/api/cases/${caseId}/documents/${docId}/view`, {
         responseType: 'blob', // Vẫn lấy blob để xử lý token bảo mật
     });
+  },
+
+  // 8. XÓA TÀI LIỆU (MỚI THÊM)
+  deleteDocument: async (caseId, docId) => {
+    return await axiosInstance.delete(`/api/cases/${caseId}/documents/${docId}`);
   }
 };

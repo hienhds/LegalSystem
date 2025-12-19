@@ -110,6 +110,27 @@ public class CaseController {
 
         return ResponseEntity.ok(response);
     }
+    
+    // API Xóa tài liệu (MỚI THÊM)
+    @DeleteMapping("/{id}/documents/{docId}")
+    public ResponseEntity<ApiResponse<Void>> deleteDocument(
+            @PathVariable Long id,
+            @PathVariable Long docId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest servletRequest
+    ) {
+        Long userId = userDetails.getUser().getUserId();
+        caseService.deleteCaseDocument(id, docId, userId);
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .message("Xóa tài liệu thành công")
+                .path(servletRequest.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<CaseResponse>>> getMyCases(
@@ -151,7 +172,7 @@ public class CaseController {
                 .body(resource);
     }
 
-    // API Xem trực tiếp (ĐÃ SỬA: Check đuôi file thủ công)
+    // API Xem trực tiếp (Giữ nguyên)
     @GetMapping("/{id}/documents/{docId}/view")
     public ResponseEntity<Resource> viewDocument(
             @PathVariable Long id,
@@ -162,7 +183,7 @@ public class CaseController {
         Resource resource = caseService.downloadCaseDocument(id, docId, userId);
 
         String filename = resource.getFilename();
-        String contentType = getContentType(filename); // Hàm xác định loại file
+        String contentType = getContentType(filename);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
@@ -170,7 +191,6 @@ public class CaseController {
                 .body(resource);
     }
 
-    // Hàm phụ trợ check đuôi file (Quan trọng)
     private String getContentType(String filename) {
         if (filename == null) return "application/octet-stream";
         String name = filename.toLowerCase();
@@ -181,7 +201,6 @@ public class CaseController {
         if (name.endsWith(".gif")) return "image/gif";
         if (name.endsWith(".txt")) return "text/plain";
         
-        // Các loại file trình duyệt không xem được thì trả về default -> sẽ tự download
         return "application/octet-stream";
     }
 }

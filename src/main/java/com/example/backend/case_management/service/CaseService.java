@@ -186,4 +186,27 @@ public class CaseService {
             throw new AppException(ErrorType.INTERNAL_ERROR, "Lỗi đường dẫn file");
         }
     }
+
+    // 7. XÓA TÀI LIỆU (MỚI THÊM)
+    public void deleteCaseDocument(Long caseId, Long docId, Long userId) {
+        Case c = caseRepository.findById(caseId)
+                .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Không tìm thấy vụ án"));
+
+        // Chỉ luật sư phụ trách mới được xóa
+        if (!c.getLawyer().getUserId().equals(userId)) {
+            throw new AppException(ErrorType.FORBIDDEN, "Bạn không có quyền xóa tài liệu của vụ án này");
+        }
+
+        CaseDocument doc = c.getDocuments().stream()
+                .filter(d -> d.getDocId().equals(docId))
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Không tìm thấy tài liệu"));
+
+        // Xóa khỏi list, JPA orphanRemoval sẽ tự xóa row trong DB
+        c.getDocuments().remove(doc);
+        caseRepository.save(c);
+        
+        // Lưu ý: Nếu muốn xóa file vật lý trên ổ cứng thì gọi thêm Logic xóa file ở đây.
+        // Hiện tại chỉ xóa dữ liệu trong DB để ẩn khỏi giao diện.
+    }
 }
