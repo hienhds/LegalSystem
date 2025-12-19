@@ -40,3 +40,9 @@ export const caseService = {
     });
   }
 };
+//download document 
+downloadDocument: async (caseId, docId) => {
+    return await axiosInstance.get(`/cases/${caseId}/documents/${docId}/download`, {
+        responseType: 'blob', // Quan trọng: báo cho axios biết server trả về file
+    });
+}

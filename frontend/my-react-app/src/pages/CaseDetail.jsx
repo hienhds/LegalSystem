@@ -62,6 +62,28 @@ export default function CaseDetail() {
     }
   };
 
+  // Hàm xử lý download document
+  const handleDownload = async (docId, fileName) => {
+    try {
+      const response = await caseService.downloadDocument(id, docId);
+      
+      // Tạo URL ảo từ Blob data
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName); // Đặt tên file khi tải về
+      document.body.appendChild(link);
+      link.click();
+      
+      // Dọn dẹp
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      alert("Không thể tải tài liệu. Có thể bạn không có quyền hoặc file lỗi.");
+      console.error("Download error:", error);
+    }
+  };
+
   // Xác định quyền: User hiện tại có phải là Luật sư (Role LAWYER) không?
   const isLawyer = user?.role === "LAWYER";
 
@@ -150,21 +172,22 @@ export default function CaseDetail() {
             
             <div className="space-y-3 mb-6">
               {caseData.documents && caseData.documents.map((doc) => (
-                <a 
+                // SỬA Ở ĐÂY: Dùng div và onClick thay vì thẻ a
+                <div 
                   key={doc.docId} 
-                  href={`http://localhost:8080${doc.fileUrl}`} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="flex items-center p-3 rounded-lg border hover:bg-slate-50 dark:hover:bg-slate-800 transition group"
+                  onClick={() => handleDownload(doc.docId, doc.fileName)}
+                  className="flex items-center p-3 rounded-lg border hover:bg-slate-50 dark:hover:bg-slate-800 transition group cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-red-500 mr-3 group-hover:scale-110 transition-transform">description</span>
                   <div className="overflow-hidden">
-                    <p className="text-sm font-medium truncate text-slate-800 dark:text-slate-200">{doc.fileName}</p>
+                    <p className="text-sm font-medium truncate text-slate-800 dark:text-slate-200 hover:text-blue-600 underline">
+                        {doc.fileName}
+                    </p>
                     <p className="text-xs text-slate-500">
                       {new Date(doc.uploadedAt).toLocaleDateString()} • {doc.uploadedByName}
                     </p>
                   </div>
-                </a>
+                </div>
               ))}
               {(!caseData.documents || caseData.documents.length === 0) && (
                 <p className="text-sm text-slate-500 italic text-center py-4">Chưa có tài liệu nào.</p>

@@ -19,8 +19,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.time.Instant;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/api/cases")
@@ -135,4 +137,22 @@ public class CaseController {
 
         return ResponseEntity.ok(response);
     }
+    // tải doc về 
+    @GetMapping("/{id}/documents/{docId}/download")
+    public ResponseEntity<Resource> downloadDocument(
+            @PathVariable Long id,
+            @PathVariable Long docId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long userId = userDetails.getUser().getUserId();
+        Resource resource = caseService.downloadCaseDocument(id, docId, userId);
+
+        // Lấy tên file để hiển thị khi tải về
+        String filename = resource.getFilename();
+        
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .body(resource);
+    }   
 }

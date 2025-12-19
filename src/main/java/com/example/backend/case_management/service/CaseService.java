@@ -15,11 +15,17 @@ import com.example.backend.common.service.UploadImageService;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Service
 @RequiredArgsConstructor
@@ -134,7 +140,7 @@ public class CaseService {
                 casesPage = caseRepository.findByLawyer_UserId(userId, pageable);
             }
         } 
-        // Nếu user là Người dân (USER/CITIZEN)
+        // Nếu user là Người dân (USER/CITIZEN) - Hoặc Admin
         else {
             if (hasKeyword) {
                 casesPage = caseRepository.searchCasesForCitizen(userId, keyword.trim(), pageable);
@@ -144,5 +150,51 @@ public class CaseService {
         }
 
         return casesPage.map(CaseResponse::from);
+    }
+
+    // 6. DOWNLOAD TÀI LIỆU (MỚI - Dùng để fix lỗi xem file)
+    public Resource downloadCaseDocument(Long caseId, Long docId, Long userId) {
+        // 1. Tìm vụ án
+        Case c = caseRepository.findById(caseId)
+            .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Không tìm thấy vụ án"));
+
+        // 2. Tìm tài liệu trong vụ án (duyệt list để tìm đúng docId)
+        CaseDocument doc = c.getDocuments().stream()
+                .filter(d -> d.getDocId().equals(docId))
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Không tìm thấy tài liệu"));
+
+        // 3. CHECK QUYỀN: Chỉ Luật sư phụ trách hoặc Khách hàng của vụ án mới được xem
+        boolean isLawyer = c.getLawyer().getUserId().equals(userId);
+        boolean isClient = c.getClient().getUserId().equals(userId);
+
+        if (!isLawyer && !isClient) {
+            throw new AppException(ErrorType.FORBIDDEN, "Bạn không có quyền truy cập tài liệu này");
+        }
+
+        // 4. Lấy file từ ổ cứng
+        try {
+            // Lưu ý: doc.getFileUrl() có thể là "uploads/case_docs/abc.pdf" hoặc "/case_docs/abc.pdf"
+            // Cần xử lý để ra đường dẫn tuyệt đối chính xác
+            String storedPath = doc.getFileUrl();
+            // Xóa prefix /uploads/ hoặc uploads/ nếu có để tránh trùng lặp
+            if (storedPath.startsWith("/uploads/")) {
+                storedPath = storedPath.substring(9);
+            } else if (storedPath.startsWith("uploads/")) {
+                storedPath = storedPath.substring(8);
+            }
+
+            Path filePath = Paths.get("uploads").resolve(storedPath).normalize();
+            
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() || resource.isReadable()) {
+                return resource;
+            } else {
+                throw new AppException(ErrorType.NOT_FOUND, "File không tồn tại trên hệ thống");
+            }
+        } catch (MalformedURLException e) {
+            throw new AppException(ErrorType.INTERNAL_ERROR, "Lỗi đường dẫn file");
+        }
     }
 }
