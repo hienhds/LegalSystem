@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 public class UploadImageService {
 
     private final UserRepository userRepository;
+
     public String uploadImage(Long userId, MultipartFile file, String folder){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "user not found"));
@@ -64,20 +65,28 @@ public class UploadImageService {
                         contentType.equals("image/jpg")
         );
     }
+
+    // --- ĐÃ SỬA LẠI HÀM NÀY ĐỂ LƯU FILE CHÍNH XÁC ---
     public String uploadFile(Long userId, MultipartFile file, String folder) {
-        // Logic giống hệt uploadImage nhưng bỏ check isImage hoặc check mở rộng hơn
         if(file.isEmpty()){
             throw new AppException(ErrorType.BAD_REQUEST, "File không được để trống");
         }
 
-        // (Tùy chọn) Check đuôi file nếu muốn chặn file exe, sh...
-        // if (!isValidDocument(file)) ...
-
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        // ... (Phần lưu file giữ nguyên như code cũ của bạn) ...
-        // ... path, Files.write ...
+        String uploadDir = "uploads/" + folder + "/";
+        File folderUpload = new File(uploadDir);
+
+        if(!folderUpload.exists()){
+            folderUpload.mkdirs();
+        }
+
+        try {
+            Path path = Paths.get(uploadDir + fileName);
+            Files.write(path, file.getBytes()); // Code lưu file vào ổ cứng
+        } catch (IOException e) {
+            throw new AppException(ErrorType.INTERNAL_ERROR, "Lỗi khi lưu tài liệu: " + e.getMessage());
+        }
 
         return "/uploads/" + folder + "/" + fileName;
     }
-
 }

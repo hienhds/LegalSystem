@@ -41,10 +41,6 @@ public class CaseService {
         User lawyer = userRepository.findById(lawyerId)
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Lawyer not found"));
         
-        if (lawyer.getLawyer() == null) {
-             throw new AppException(ErrorType.FORBIDDEN, "Tài khoản này không phải là luật sư");
-        }
-
         User client = userRepository.findById(request.getClientId())
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Client not found"));
 
@@ -123,7 +119,7 @@ public class CaseService {
         return fileUrl;
     }
 
-    // 5. LẤY DANH SÁCH VỤ ÁN CỦA TÔI (CÓ TÌM KIẾM)
+    // 5. LẤY DANH SÁCH VỤ ÁN CỦA TÔI
     public Page<CaseResponse> getMyCases(Long userId, String keyword, Pageable pageable) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "User not found"));
@@ -132,16 +128,17 @@ public class CaseService {
         String role = user.getRoleName(); 
         boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
 
-        // Nếu user là Luật sư (LAWYER)
-        if ("LAWYER".equals(role)) {
+        // Xử lý Role: Kiểm tra xem user có phải luật sư không
+        boolean isLawyer = "LAWYER".equalsIgnoreCase(role);
+
+        if (isLawyer) {
             if (hasKeyword) {
                 casesPage = caseRepository.searchCasesForLawyer(userId, keyword.trim(), pageable);
             } else {
                 casesPage = caseRepository.findByLawyer_UserId(userId, pageable);
             }
-        } 
-        // Nếu user là Người dân (USER/CITIZEN) - Hoặc Admin
-        else {
+        } else {
+            // Mặc định là Client
             if (hasKeyword) {
                 casesPage = caseRepository.searchCasesForCitizen(userId, keyword.trim(), pageable);
             } else {
@@ -152,19 +149,16 @@ public class CaseService {
         return casesPage.map(CaseResponse::from);
     }
 
-    // 6. DOWNLOAD TÀI LIỆU (MỚI - Dùng để fix lỗi xem file)
+    // 6. DOWNLOAD TÀI LIỆU
     public Resource downloadCaseDocument(Long caseId, Long docId, Long userId) {
-        // 1. Tìm vụ án
         Case c = caseRepository.findById(caseId)
             .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Không tìm thấy vụ án"));
 
-        // 2. Tìm tài liệu trong vụ án (duyệt list để tìm đúng docId)
         CaseDocument doc = c.getDocuments().stream()
                 .filter(d -> d.getDocId().equals(docId))
                 .findFirst()
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Không tìm thấy tài liệu"));
 
-        // 3. CHECK QUYỀN: Chỉ Luật sư phụ trách hoặc Khách hàng của vụ án mới được xem
         boolean isLawyer = c.getLawyer().getUserId().equals(userId);
         boolean isClient = c.getClient().getUserId().equals(userId);
 
@@ -172,12 +166,8 @@ public class CaseService {
             throw new AppException(ErrorType.FORBIDDEN, "Bạn không có quyền truy cập tài liệu này");
         }
 
-        // 4. Lấy file từ ổ cứng
         try {
-            // Lưu ý: doc.getFileUrl() có thể là "uploads/case_docs/abc.pdf" hoặc "/case_docs/abc.pdf"
-            // Cần xử lý để ra đường dẫn tuyệt đối chính xác
             String storedPath = doc.getFileUrl();
-            // Xóa prefix /uploads/ hoặc uploads/ nếu có để tránh trùng lặp
             if (storedPath.startsWith("/uploads/")) {
                 storedPath = storedPath.substring(9);
             } else if (storedPath.startsWith("uploads/")) {
@@ -185,7 +175,6 @@ public class CaseService {
             }
 
             Path filePath = Paths.get("uploads").resolve(storedPath).normalize();
-            
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() || resource.isReadable()) {

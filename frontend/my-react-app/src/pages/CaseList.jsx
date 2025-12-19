@@ -2,42 +2,56 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { caseService } from "../services/caseService";
 import Layout from "../components/Layout";
-import useUserProfile from "../hooks/useUserProfile"; // [Thêm mới] Import hook lấy thông tin user
+import useUserProfile from "../hooks/useUserProfile";
 
 export default function CaseList() {
-  const { user } = useUserProfile(); // [Thêm mới] Lấy thông tin user hiện tại
+  const { user } = useUserProfile();
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // Thêm state page để fix lỗi "page is not defined"
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   // State cho tìm kiếm
   const [searchTerm, setSearchTerm] = useState("");
   const [keyword, setKeyword] = useState("");
 
   const navigate = useNavigate();
 
-  // Gọi API mỗi khi keyword thay đổi
+  // Gọi API mỗi khi keyword hoặc page thay đổi
   useEffect(() => {
     const fetchCases = async () => {
       setLoading(true);
+      setError(null); // Reset lỗi trước khi gọi mới
       try {
-        const res = await caseService.getMyCases(0, 20, keyword);
+        // Gọi API với page và keyword chuẩn
+        const res = await caseService.getMyCases(page, 10, keyword);
+        
         if (res.data.success) {
           setCases(res.data.data.content || []);
+          setTotalPages(res.data.data.totalPages || 0);
         }
       } catch (err) {
         console.error("Lỗi tải danh sách:", err);
-        setError("Không thể tải danh sách vụ án. Vui lòng thử lại sau.");
+        // Hiển thị thông báo lỗi thân thiện hơn
+        if (err.response && err.response.status === 500) {
+           setError("Lỗi Server (500): Vui lòng kiểm tra lại Backend (File CaseRepository.java)");
+        } else {
+           setError("Không thể tải danh sách vụ án. Vui lòng thử lại sau.");
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchCases();
-  }, [keyword]);
+  }, [keyword, page]); // Thêm page vào dependency
 
   const handleSearch = (e) => {
     e.preventDefault();
     setKeyword(searchTerm);
+    setPage(0); // Reset về trang đầu khi tìm kiếm
   };
 
   const getStatusColor = (status) => {
@@ -55,7 +69,6 @@ export default function CaseList() {
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
           <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Hồ Sơ Vụ Án Của Tôi</h1>
           
-          {/* [SỬA ĐỔI QUAN TRỌNG] Chỉ hiển thị nút tạo vụ án nếu là LAWYER */}
           {user?.role === "LAWYER" && (
             <Link to="/create-case" className="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 flex items-center gap-2">
               <span className="material-symbols-outlined">add</span>
@@ -72,7 +85,7 @@ export default function CaseList() {
               <input
                 type="text"
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                placeholder="Tìm theo tên hồ sơ, tên người liên quan, SĐT, Email..."
+                placeholder="Tìm hồ sơ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -88,7 +101,7 @@ export default function CaseList() {
 
         {error && (
           <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg border border-red-400">
-            {error} (Mã lỗi server: 500)
+            {error}
           </div>
         )}
 
@@ -103,14 +116,6 @@ export default function CaseList() {
             <p className="mt-4 text-slate-500 text-lg">
               {keyword ? `Không tìm thấy kết quả cho "${keyword}"` : "Bạn chưa có hồ sơ vụ án nào."}
             </p>
-            {keyword && (
-              <button 
-                onClick={() => { setSearchTerm(""); setKeyword(""); }}
-                className="mt-2 text-primary hover:underline font-medium"
-              >
-                Xóa bộ lọc tìm kiếm
-              </button>
-            )}
           </div>
         ) : (
           <div className="grid gap-4">
@@ -127,20 +132,17 @@ export default function CaseList() {
                     </h3>
                     <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">#{c.caseId}</span>
                   </div>
-                  
                   <p className="text-sm text-slate-500 line-clamp-1 mb-2">{c.description}</p>
-                  
                   <div className="flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400">
                     <span className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">
                       <span className="material-symbols-outlined text-[16px]">person</span> 
-                      {/* Hiển thị thông minh: Nếu là LS thì hiện tên khách, nếu là Khách thì hiện tên LS */}
                       {c.clientName && c.lawyerName ? (
                         user?.role === 'LAWYER' ? c.clientName : c.lawyerName
                       ) : (c.lawyerName || c.clientName)}
                     </span>
                     <span className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">
                       <span className="material-symbols-outlined text-[16px]">calendar_today</span> 
-                      {new Date(c.createdAt).toLocaleDateString("vi-VN")}
+                      {c.createdAt ? new Date(c.createdAt).toLocaleDateString("vi-VN") : "N/A"}
                     </span>
                   </div>
                 </div>

@@ -11,29 +11,31 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CaseRepository extends JpaRepository<Case, Long> {
 
-    // 1. Tìm kiếm dành cho LUẬT SƯ 
-    // (Tìm theo: Tên vụ án, Tên khách, Email khách, SĐT khách)
-    @Query("SELECT c FROM Case c WHERE c.lawyer.userId = :lawyerId " +
-           "AND (" +
-           "   LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-           "   OR LOWER(c.client.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-           "   OR LOWER(c.client.email) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-           "   OR c.client.phoneNumber LIKE CONCAT('%', :keyword, '%') " +
-           ")")
-    Page<Case> searchCasesForLawyer(@Param("lawyerId") Long lawyerId, @Param("keyword") String keyword, Pageable pageable);
+    // 1. Lấy danh sách cho Luật sư
+    Page<Case> findByLawyer_UserId(Long lawyerId, Pageable pageable);
 
-    // 2. Tìm kiếm dành cho NGƯỜI DÂN (Đã cập nhật theo yêu cầu của bạn)
-    // (Tìm theo: Tên vụ án, Tên luật sư, Email luật sư, SĐT luật sư)
-    @Query("SELECT c FROM Case c WHERE c.client.userId = :clientId " +
-           "AND (" +
-           "   LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-           "   OR LOWER(c.lawyer.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-           "   OR LOWER(c.lawyer.email) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-           "   OR c.lawyer.phoneNumber LIKE CONCAT('%', :keyword, '%') " +
-           ")")
-    Page<Case> searchCasesForCitizen(@Param("clientId") Long clientId, @Param("keyword") String keyword, Pageable pageable);
+    // 2. Lấy danh sách cho Khách hàng
+    Page<Case> findByClient_UserId(Long clientId, Pageable pageable);
 
-    // 3. Fallback: Lấy tất cả nếu không có từ khóa
-    Page<Case> findByLawyer_UserId(Long userId, Pageable pageable);
-    Page<Case> findByClient_UserId(Long userId, Pageable pageable);
+    // 3. Tìm kiếm cho LUẬT SƯ (Fix lỗi query)
+    @Query("SELECT c FROM Case c " +
+           "LEFT JOIN c.client cl " +
+           "WHERE c.lawyer.userId = :lawyerId " +
+           "AND (:keyword IS NULL OR :keyword = '' OR " +
+           "LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(cl.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Case> searchCasesForLawyer(@Param("lawyerId") Long lawyerId, 
+                                    @Param("keyword") String keyword, 
+                                    Pageable pageable);
+
+    // 4. Tìm kiếm cho KHÁCH HÀNG (Fix lỗi query)
+    @Query("SELECT c FROM Case c " +
+           "LEFT JOIN c.lawyer l " +
+           "WHERE c.client.userId = :clientId " +
+           "AND (:keyword IS NULL OR :keyword = '' OR " +
+           "LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(l.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Case> searchCasesForCitizen(@Param("clientId") Long clientId, 
+                                     @Param("keyword") String keyword, 
+                                     Pageable pageable);
 }

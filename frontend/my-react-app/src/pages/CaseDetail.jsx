@@ -67,15 +67,13 @@ export default function CaseDetail() {
     try {
       const response = await caseService.downloadDocument(id, docId);
       
-      // Tạo URL ảo từ Blob data
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', fileName); // Đặt tên file khi tải về
+      link.setAttribute('download', fileName);
       document.body.appendChild(link);
       link.click();
       
-      // Dọn dẹp
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -84,8 +82,11 @@ export default function CaseDetail() {
     }
   };
 
-  // Xác định quyền: User hiện tại có phải là Luật sư (Role LAWYER) không?
+  // User hiện tại có phải là Luật sư (Role LAWYER) không?
   const isLawyer = user?.role === "LAWYER";
+  
+  // URL Server để xem file (Giả định server chạy localhost:8080)
+  const API_BASE_URL = "http://localhost:8080"; 
 
   if (loading) return <Layout><div>Đang tải...</div></Layout>;
   if (!caseData) return <Layout><div>Không tìm thấy vụ án</div></Layout>;
@@ -137,7 +138,6 @@ export default function CaseDetail() {
           <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border dark:border-slate-800">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">Tiến độ xử lý</h2>
-              {/* Chỉ Luật sư mới được cập nhật tiến độ */}
               {isLawyer && (
                 <button 
                   onClick={() => setShowUpdateModal(true)}
@@ -172,21 +172,37 @@ export default function CaseDetail() {
             
             <div className="space-y-3 mb-6">
               {caseData.documents && caseData.documents.map((doc) => (
-                // SỬA Ở ĐÂY: Dùng div và onClick thay vì thẻ a
                 <div 
                   key={doc.docId} 
-                  onClick={() => handleDownload(doc.docId, doc.fileName)}
-                  className="flex items-center p-3 rounded-lg border hover:bg-slate-50 dark:hover:bg-slate-800 transition group cursor-pointer"
+                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-slate-50 dark:hover:bg-slate-800 transition"
                 >
-                  <span className="material-symbols-outlined text-red-500 mr-3 group-hover:scale-110 transition-transform">description</span>
-                  <div className="overflow-hidden">
-                    <p className="text-sm font-medium truncate text-slate-800 dark:text-slate-200 hover:text-blue-600 underline">
-                        {doc.fileName}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {new Date(doc.uploadedAt).toLocaleDateString()} • {doc.uploadedByName}
-                    </p>
+                  <div className="flex items-center overflow-hidden mr-2">
+                    <span className="material-symbols-outlined text-red-500 mr-3">description</span>
+                    <div className="overflow-hidden">
+                      {/* Link để xem trực tiếp */}
+                      <a 
+                        href={`${API_BASE_URL}${doc.fileUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer" 
+                        className="text-sm font-medium truncate text-blue-600 hover:underline block"
+                        title="Xem tài liệu"
+                      >
+                          {doc.fileName}
+                      </a>
+                      <p className="text-xs text-slate-500">
+                        {new Date(doc.uploadedAt).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
+                  
+                  {/* Nút tải xuống */}
+                  <button
+                    onClick={() => handleDownload(doc.docId, doc.fileName)}
+                    className="p-2 text-slate-400 hover:text-blue-600 rounded-full hover:bg-blue-50 transition"
+                    title="Tải về máy"
+                  >
+                    <span className="material-symbols-outlined text-xl">download</span>
+                  </button>
                 </div>
               ))}
               {(!caseData.documents || caseData.documents.length === 0) && (
@@ -215,7 +231,7 @@ export default function CaseDetail() {
         </div>
       </div>
 
-      {/* Modal Cập nhật tiến độ (Chỉ render khi show) */}
+      {/* Modal Cập nhật tiến độ */}
       {showUpdateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-white dark:bg-slate-900 rounded-xl p-6 w-full max-w-md shadow-2xl">

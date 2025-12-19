@@ -29,20 +29,21 @@ export const caseService = {
     });
   },
   
-  // 5. LẤY DANH SÁCH VỤ ÁN CỦA TÔI (Đã thêm keyword)
+  // 5. LẤY DANH SÁCH VỤ ÁN CỦA TÔI
   getMyCases: async (page = 0, size = 10, keyword = "") => {
     return await axiosInstance.get(`/api/cases`, {
       params: { 
         page, 
         size, 
-        keyword // Truyền keyword vào đây
+        keyword
       }
+    });
+  },
+
+  // 6. DOWNLOAD TÀI LIỆU (Đã sửa lỗi vị trí và đường dẫn)
+  downloadDocument: async (caseId, docId) => {
+    return await axiosInstance.get(`/api/cases/${caseId}/documents/${docId}/download`, {
+        responseType: 'blob', // Quan trọng để tải file
     });
   }
 };
-//download document 
-downloadDocument: async (caseId, docId) => {
-    return await axiosInstance.get(`/cases/${caseId}/documents/${docId}/download`, {
-        responseType: 'blob', // Quan trọng: báo cho axios biết server trả về file
-    });
-}
