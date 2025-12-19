@@ -187,7 +187,7 @@ public class CaseService {
         }
     }
 
-    // 7. XÓA TÀI LIỆU (MỚI THÊM)
+    // 7. XÓA TÀI LIỆU
     public void deleteCaseDocument(Long caseId, Long docId, Long userId) {
         Case c = caseRepository.findById(caseId)
                 .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Không tìm thấy vụ án"));
@@ -205,8 +205,22 @@ public class CaseService {
         // Xóa khỏi list, JPA orphanRemoval sẽ tự xóa row trong DB
         c.getDocuments().remove(doc);
         caseRepository.save(c);
-        
-        // Lưu ý: Nếu muốn xóa file vật lý trên ổ cứng thì gọi thêm Logic xóa file ở đây.
-        // Hiện tại chỉ xóa dữ liệu trong DB để ẩn khỏi giao diện.
+    }
+
+    // 8. XÓA VỤ ÁN (MỚI THÊM)
+    public void deleteCase(Long caseId, Long userId) {
+        Case c = caseRepository.findById(caseId)
+                .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "Không tìm thấy vụ án"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorType.NOT_FOUND, "User not found"));
+
+        // Chỉ luật sư phụ trách mới được xóa
+        if (!c.getLawyer().getUserId().equals(userId)) {
+            throw new AppException(ErrorType.FORBIDDEN, "Bạn không có quyền xóa vụ án này");
+        }
+
+        // Xóa vụ án (Cần đảm bảo trong Entity Case đã set CascadeType.ALL hoặc orphanRemoval cho các list documents/updates)
+        caseRepository.delete(c);
     }
 }

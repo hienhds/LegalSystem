@@ -54,8 +54,13 @@ export const caseService = {
     });
   },
 
-  // 8. XÓA TÀI LIỆU (MỚI THÊM)
+  // 8. XÓA TÀI LIỆU
   deleteDocument: async (caseId, docId) => {
     return await axiosInstance.delete(`/api/cases/${caseId}/documents/${docId}`);
+  },
+
+  // 9. XÓA VỤ ÁN (MỚI THÊM)
+  deleteCase: async (caseId) => {
+    return await axiosInstance.delete(`/api/cases/${caseId}`);
   }
 };

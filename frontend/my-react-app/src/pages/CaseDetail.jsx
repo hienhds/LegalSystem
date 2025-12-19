@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { caseService } from "../services/caseService";
 import Layout from "../components/Layout";
 import useUserProfile from "../hooks/useUserProfile";
 
 export default function CaseDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useUserProfile();
   const [caseData, setCaseData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +43,6 @@ export default function CaseDetail() {
     }
   };
 
-  // HÀM XỬ LÝ XÓA TÀI LIỆU (MỚI)
   const handleDeleteDocument = async (docId, fileName) => {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa tài liệu "${fileName}" không?`)) {
       return;
@@ -51,9 +51,24 @@ export default function CaseDetail() {
     try {
       await caseService.deleteDocument(id, docId);
       alert("Xóa tài liệu thành công!");
-      fetchCaseDetail(); // Load lại danh sách
+      fetchCaseDetail();
     } catch (error) {
       alert("Lỗi khi xóa: " + (error.response?.data?.message || error.message));
+    }
+  };
+
+  // HÀM XỬ LÝ XÓA VỤ ÁN (MỚI)
+  const handleDeleteCase = async () => {
+    if (!window.confirm("CẢNH BÁO: Hành động này không thể hoàn tác.\nBạn có chắc chắn muốn xóa toàn bộ hồ sơ vụ án này không?")) {
+      return;
+    }
+
+    try {
+      await caseService.deleteCase(id);
+      alert("Đã xóa vụ án thành công!");
+      navigate("/cases"); // Chuyển hướng về danh sách sau khi xóa
+    } catch (error) {
+      alert("Lỗi khi xóa vụ án: " + (error.response?.data?.message || error.message));
     }
   };
 
@@ -173,12 +188,21 @@ export default function CaseDetail() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">Tiến độ xử lý</h2>
               {isLawyer && (
-                <button 
-                  onClick={() => setShowUpdateModal(true)}
-                  className="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 transition flex items-center gap-1"
-                >
-                  <span className="material-symbols-outlined text-sm">edit_note</span> Cập nhật
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setShowUpdateModal(true)}
+                    className="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 transition flex items-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-sm">edit_note</span> Cập nhật
+                  </button>
+                  <button 
+                    onClick={handleDeleteCase}
+                    className="bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm hover:bg-red-200 transition flex items-center gap-1 border border-red-200"
+                    title="Xóa hoàn toàn vụ án này"
+                  >
+                    <span className="material-symbols-outlined text-sm">delete_forever</span> Xóa hồ sơ
+                  </button>
+                </div>
               )}
             </div>
 
@@ -227,7 +251,6 @@ export default function CaseDetail() {
                   </div>
                   
                   <div className="flex gap-1">
-                    {/* Nút Xem */}
                     <button
                         onClick={() => handleView(doc.docId, doc.fileName)}
                         className="p-2 text-slate-400 hover:text-green-600 rounded-full hover:bg-green-50 transition"
@@ -236,7 +259,6 @@ export default function CaseDetail() {
                         <span className="material-symbols-outlined text-xl">visibility</span>
                     </button>
 
-                    {/* Nút Download */}
                     <button
                         onClick={() => handleDownload(doc.docId, doc.fileName)}
                         className="p-2 text-slate-400 hover:text-blue-600 rounded-full hover:bg-blue-50 transition"
@@ -245,7 +267,6 @@ export default function CaseDetail() {
                         <span className="material-symbols-outlined text-xl">download</span>
                     </button>
 
-                    {/* Nút Delete (CHỈ LUẬT SƯ MỚI THẤY) */}
                     {isLawyer && (
                         <button
                             onClick={() => handleDeleteDocument(doc.docId, doc.fileName)}

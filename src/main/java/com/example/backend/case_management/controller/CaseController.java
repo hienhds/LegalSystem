@@ -111,7 +111,6 @@ public class CaseController {
         return ResponseEntity.ok(response);
     }
     
-    // API Xóa tài liệu (MỚI THÊM)
     @DeleteMapping("/{id}/documents/{docId}")
     public ResponseEntity<ApiResponse<Void>> deleteDocument(
             @PathVariable Long id,
@@ -125,6 +124,27 @@ public class CaseController {
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .success(true)
                 .message("Xóa tài liệu thành công")
+                .path(servletRequest.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    // API Xóa vụ án (MỚI THÊM)
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('LAWYER')")
+    public ResponseEntity<ApiResponse<Void>> deleteCase(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest servletRequest
+    ) {
+        Long userId = userDetails.getUser().getUserId();
+        caseService.deleteCase(id, userId);
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .message("Xóa vụ án thành công")
                 .path(servletRequest.getRequestURI())
                 .timestamp(Instant.now())
                 .build();
@@ -155,7 +175,6 @@ public class CaseController {
         return ResponseEntity.ok(response);
     }
 
-    // API Download (Giữ nguyên)
     @GetMapping("/{id}/documents/{docId}/download")
     public ResponseEntity<Resource> downloadDocument(
             @PathVariable Long id,
@@ -172,7 +191,6 @@ public class CaseController {
                 .body(resource);
     }
 
-    // API Xem trực tiếp (Giữ nguyên)
     @GetMapping("/{id}/documents/{docId}/view")
     public ResponseEntity<Resource> viewDocument(
             @PathVariable Long id,
