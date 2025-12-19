@@ -40,10 +40,17 @@ export const caseService = {
     });
   },
 
-  // 6. DOWNLOAD TÀI LIỆU (Đã sửa lỗi vị trí và đường dẫn)
+  // 6. DOWNLOAD TÀI LIỆU
   downloadDocument: async (caseId, docId) => {
     return await axiosInstance.get(`/api/cases/${caseId}/documents/${docId}/download`, {
         responseType: 'blob', // Quan trọng để tải file
+    });
+  },
+
+  // 7. [MỚI] XEM TÀI LIỆU TRỰC TIẾP
+  viewDocument: async (caseId, docId) => {
+    return await axiosInstance.get(`/api/cases/${caseId}/documents/${docId}/view`, {
+        responseType: 'blob', // Vẫn lấy blob để xử lý token bảo mật
     });
   }
 };

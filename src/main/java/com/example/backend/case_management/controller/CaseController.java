@@ -111,20 +111,16 @@ public class CaseController {
         return ResponseEntity.ok(response);
     }
 
-    // 5. LẤY DANH SÁCH VỤ ÁN CỦA TÔI (CÓ TÌM KIẾM)
     @GetMapping
     public ResponseEntity<ApiResponse<Page<CaseResponse>>> getMyCases(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String keyword, // Thêm param keyword
+            @RequestParam(required = false) String keyword,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest request
     ) {
         Long userId = userDetails.getUser().getUserId();
-        
-        // Sắp xếp: Mới nhất lên đầu
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        
         Page<CaseResponse> cases = caseService.getMyCases(userId, keyword, pageable);
 
         ApiResponse<Page<CaseResponse>> response = ApiResponse.<Page<CaseResponse>>builder()
@@ -137,7 +133,8 @@ public class CaseController {
 
         return ResponseEntity.ok(response);
     }
-    // tải doc về 
+
+    // API Download (Giữ nguyên)
     @GetMapping("/{id}/documents/{docId}/download")
     public ResponseEntity<Resource> downloadDocument(
             @PathVariable Long id,
@@ -146,13 +143,45 @@ public class CaseController {
     ) {
         Long userId = userDetails.getUser().getUserId();
         Resource resource = caseService.downloadCaseDocument(id, docId, userId);
-
-        // Lấy tên file để hiển thị khi tải về
         String filename = resource.getFilename();
         
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .body(resource);
-    }   
+    }
+
+    // API Xem trực tiếp (ĐÃ SỬA: Check đuôi file thủ công)
+    @GetMapping("/{id}/documents/{docId}/view")
+    public ResponseEntity<Resource> viewDocument(
+            @PathVariable Long id,
+            @PathVariable Long docId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long userId = userDetails.getUser().getUserId();
+        Resource resource = caseService.downloadCaseDocument(id, docId, userId);
+
+        String filename = resource.getFilename();
+        String contentType = getContentType(filename); // Hàm xác định loại file
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                .body(resource);
+    }
+
+    // Hàm phụ trợ check đuôi file (Quan trọng)
+    private String getContentType(String filename) {
+        if (filename == null) return "application/octet-stream";
+        String name = filename.toLowerCase();
+        
+        if (name.endsWith(".pdf")) return "application/pdf";
+        if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
+        if (name.endsWith(".png")) return "image/png";
+        if (name.endsWith(".gif")) return "image/gif";
+        if (name.endsWith(".txt")) return "text/plain";
+        
+        // Các loại file trình duyệt không xem được thì trả về default -> sẽ tự download
+        return "application/octet-stream";
+    }
 }

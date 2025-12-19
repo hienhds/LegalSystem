@@ -10,11 +10,9 @@ export default function CaseDetail() {
   const [caseData, setCaseData] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // State cho form update tiến độ
   const [updateForm, setUpdateForm] = useState({ title: "", description: "", status: "" });
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
-  // Load dữ liệu vụ án
   const fetchCaseDetail = async () => {
     try {
       const res = await caseService.getCaseDetail(id);
@@ -32,26 +30,23 @@ export default function CaseDetail() {
     fetchCaseDetail();
   }, [id]);
 
-  // Xử lý upload file (Chỉ Luật sư)
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     try {
       await caseService.uploadDocument(id, file);
       alert("Upload tài liệu thành công!");
-      fetchCaseDetail(); // Reload lại data sau khi upload
+      fetchCaseDetail();
     } catch (error) {
       alert("Lỗi upload: " + (error.response?.data?.message || error.message));
     }
   };
 
-  // Xử lý cập nhật tiến độ (Chỉ Luật sư)
   const handleUpdateProgress = async (e) => {
     e.preventDefault();
     try {
       const payload = { ...updateForm };
       if (!payload.status) delete payload.status;
-
       await caseService.updateProgress(id, payload);
       alert("Cập nhật tiến độ thành công!");
       setShowUpdateModal(false);
@@ -62,31 +57,64 @@ export default function CaseDetail() {
     }
   };
 
-  // Hàm xử lý download document
   const handleDownload = async (docId, fileName) => {
     try {
       const response = await caseService.downloadDocument(id, docId);
-      
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', fileName);
       document.body.appendChild(link);
       link.click();
-      
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      alert("Không thể tải tài liệu. Có thể bạn không có quyền hoặc file lỗi.");
-      console.error("Download error:", error);
+      alert("Không thể tải tài liệu.");
     }
   };
 
-  // User hiện tại có phải là Luật sư (Role LAWYER) không?
+  // [ĐÃ SỬA] Hàm xử lý xem document thông minh hơn
+  const handleView = async (docId, fileName) => {
+    try {
+      // Gọi API lấy file
+      const response = await caseService.viewDocument(id, docId);
+      
+      // Lấy Content-Type từ header trả về
+      const contentType = response.headers['content-type'] || "";
+      
+      // Tạo Blob với đúng loại file
+      const file = new Blob([response.data], { type: contentType });
+      const fileURL = URL.createObjectURL(file);
+
+      // Kiểm tra xem trình duyệt có hỗ trợ loại file này không
+      const isViewable = contentType.includes("pdf") || 
+                         contentType.includes("image") || 
+                         contentType.includes("text");
+
+      if (isViewable) {
+          // Nếu xem được -> Mở tab mới
+          window.open(fileURL, "_blank");
+      } else {
+          // Nếu là Word/Excel/Zip -> Báo lỗi hoặc tự tải về
+          const confirmDownload = window.confirm(
+              `Trình duyệt không hỗ trợ xem trước file "${fileName}". Bạn có muốn tải về không?`
+          );
+          if (confirmDownload) {
+              const link = document.createElement('a');
+              link.href = fileURL;
+              link.setAttribute('download', fileName);
+              document.body.appendChild(link);
+              link.click();
+              link.parentNode.removeChild(link);
+          }
+      }
+    } catch (error) {
+      alert("Không thể xem tài liệu. Lỗi server hoặc file không tồn tại.");
+      console.error("View error:", error);
+    }
+  };
+
   const isLawyer = user?.role === "LAWYER";
-  
-  // URL Server để xem file (Giả định server chạy localhost:8080)
-  const API_BASE_URL = "http://localhost:8080"; 
 
   if (loading) return <Layout><div>Đang tải...</div></Layout>;
   if (!caseData) return <Layout><div>Không tìm thấy vụ án</div></Layout>;
@@ -94,7 +122,7 @@ export default function CaseDetail() {
   return (
     <Layout>
       <div className="max-w-6xl mx-auto p-4 space-y-6">
-        {/* Header Thông tin chung */}
+        {/* Header */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border dark:border-slate-800">
           <div className="flex justify-between items-start">
             <div>
@@ -134,7 +162,7 @@ export default function CaseDetail() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Cột trái: Tiến độ vụ án (Timeline) */}
+          {/* Cột trái: Timeline */}
           <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border dark:border-slate-800">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">Tiến độ xử lý</h2>
@@ -179,30 +207,39 @@ export default function CaseDetail() {
                   <div className="flex items-center overflow-hidden mr-2">
                     <span className="material-symbols-outlined text-red-500 mr-3">description</span>
                     <div className="overflow-hidden">
-                      {/* Link để xem trực tiếp */}
-                      <a 
-                        href={`${API_BASE_URL}${doc.fileUrl}`}
-                        target="_blank"
-                        rel="noopener noreferrer" 
-                        className="text-sm font-medium truncate text-blue-600 hover:underline block"
+                      {/* Bấm vào tên file cũng View luôn */}
+                      <button 
+                        onClick={() => handleView(doc.docId, doc.fileName)} // Truyền fileName vào đây
+                        className="text-sm font-medium truncate text-blue-600 hover:underline block text-left"
                         title="Xem tài liệu"
                       >
                           {doc.fileName}
-                      </a>
+                      </button>
                       <p className="text-xs text-slate-500">
                         {new Date(doc.uploadedAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   
-                  {/* Nút tải xuống */}
-                  <button
-                    onClick={() => handleDownload(doc.docId, doc.fileName)}
-                    className="p-2 text-slate-400 hover:text-blue-600 rounded-full hover:bg-blue-50 transition"
-                    title="Tải về máy"
-                  >
-                    <span className="material-symbols-outlined text-xl">download</span>
-                  </button>
+                  <div className="flex gap-1">
+                    {/* Nút Xem (Con mắt) */}
+                    <button
+                        onClick={() => handleView(doc.docId, doc.fileName)} // Truyền fileName vào đây
+                        className="p-2 text-slate-400 hover:text-green-600 rounded-full hover:bg-green-50 transition"
+                        title="Xem trực tiếp"
+                    >
+                        <span className="material-symbols-outlined text-xl">visibility</span>
+                    </button>
+
+                    {/* Nút Download */}
+                    <button
+                        onClick={() => handleDownload(doc.docId, doc.fileName)}
+                        className="p-2 text-slate-400 hover:text-blue-600 rounded-full hover:bg-blue-50 transition"
+                        title="Tải về máy"
+                    >
+                        <span className="material-symbols-outlined text-xl">download</span>
+                    </button>
+                  </div>
                 </div>
               ))}
               {(!caseData.documents || caseData.documents.length === 0) && (
@@ -210,7 +247,6 @@ export default function CaseDetail() {
               )}
             </div>
 
-            {/* Nút upload tài liệu - CHỈ HIỂN THỊ NẾU LÀ LUẬT SƯ */}
             {isLawyer && (
               <div className="border-t pt-4">
                 <label className="block w-full cursor-pointer group">
@@ -231,7 +267,6 @@ export default function CaseDetail() {
         </div>
       </div>
 
-      {/* Modal Cập nhật tiến độ */}
       {showUpdateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-white dark:bg-slate-900 rounded-xl p-6 w-full max-w-md shadow-2xl">
